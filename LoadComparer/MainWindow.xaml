@@ -5,27 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LoadComparer"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="320" MinWidth="420" MaxHeight="320" MaxWidth="420" Height="330" Width="420">
+        Title="MainWindow" MinHeight="520" MinWidth="830" Height="520" Width="830" Closed="Window_Closed">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="100"/>
-            <RowDefinition Height="60"/>
-            <RowDefinition Height="60"/>
-            <RowDefinition Height="60"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="160"/>
+            <RowDefinition Height="160"/>
+            <RowDefinition Height="130"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,5,0,0" Text="Для двух xlsx файлов:" Foreground="Black" FontSize="20"/>
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,35,0,0" Text="- поиск разности по Uid" Foreground="Black" FontSize="20"/>
+        <TextBlock Grid.Column="1" Grid.Row="0" Text="Столбец Uid" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Grid.Column="2" Grid.Row="0" Text="Столбец значения" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,35,0,0" Text="- поиск разности по Uid" Foreground="Black" FontSize="18"/>
         <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,65,0,0" Text="- поиск отличающихся нагрузок" Foreground="Black" FontSize="20"/>
-        <Button x:Name="input1" Grid.Column="0" Grid.Row="1" Content="Загрузить XLSX 1" Margin="10" FontSize="20" Click="input1_Click"/>
-        <Button x:Name="input2" Grid.Column="0" Grid.Row="2" Content="Загрузить XLSX 2" Margin="10" FontSize="20" Click="input2_Click"/>
-        <Button x:Name="compare" Grid.Column="0" Grid.Row="3" Content="Сравнить" Margin="10" FontSize="20" Click="compare_Click"/>
-        <TextBlock x:Name="textInput1" Grid.Column="1" Grid.Row="1" Text="Файл не загружен" Foreground="Red" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Width="201"/>
-        <TextBlock x:Name="textInput2" Grid.Column="1" Grid.Row="2" Text="Файл не загружен" Foreground="Red" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
-        <TextBlock x:Name="textOutput" Grid.Column="1" Grid.Row="3" Text="" Foreground="Green" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+        <Button x:Name="input1" Grid.Column="0" Grid.Row="1" Content="Загрузить XLSX 1" Margin="10,20,10,20" FontSize="18" Click="input1_Click"/>
+        <Button x:Name="input2" Grid.Column="0" Grid.Row="2" Content="Загрузить XLSX 2" Margin="10,20,10,20" FontSize="18" Click="input2_Click"/>
+        <Button x:Name="compare" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3" Content="Сравнить" Margin="10,20,0,20" FontSize="18" Click="compare_Click"/>
+        <ListBox x:Name="selectUid1" Grid.Column="1" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <ListBox x:Name="selectUid2" Grid.Column="1" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <ListBox x:Name="selectLoad1" Grid.Column="2" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <ListBox x:Name="selectLoad2" Grid.Column="2" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <TextBlock x:Name="textOutput" Grid.Column="0" Grid.Row="0" Text="Сохранение успешно!"  Foreground="Green" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+
     </Grid>
 </Window>

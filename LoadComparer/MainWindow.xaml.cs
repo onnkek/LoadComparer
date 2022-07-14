@@ -16,11 +16,17 @@ namespace LoadComparer
         public MainWindow()
         {
             InitializeComponent();
+            Title = "XLSX Comparer";
+            textOutput.Visibility = Visibility.Hidden;
         }
         public static string pathInput1;
         public static string pathInput2;
         public static string pathOutput;
-        public static int readySave;
+        public static string nameFile1;
+        public static string nameFile2;
+        public static Excel.Application excel = new Excel.Application();
+        public static Excel.Workbook book;
+        public static Excel.Worksheet sheet;
 
         private void input1_Click(object sender, RoutedEventArgs e)
         {
@@ -29,12 +35,25 @@ namespace LoadComparer
             if (openDialog.ShowDialog() == true)
             {
                 pathInput1 = openDialog.FileName;
+                nameFile1 = openDialog.SafeFileName;
             }
             if (pathInput1 != null)
             {
-                textInput1.Text = "Файл загружен";
-                textInput1.Foreground = new SolidColorBrush(Colors.Green);
+                book = excel.Workbooks.Open(pathInput1);
+                sheet = book.ActiveSheet;
+                List<string> head = new List<string>();
+                for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
+                {
+                    selectUid1.Items.Add(sheet.Cells[1, i].Value);
+                    selectLoad1.Items.Add(sheet.Cells[1, i].Value);
+                    if (sheet.Cells[1, i].Value.Contains("Uid"))
+                        selectUid1.SelectedIndex = i - 1;
+                    if (sheet.Cells[1, i].Value.Contains("Переток"))
+                        selectLoad1.SelectedIndex = i - 1;
+                }
+                excel.Quit();
             }
+            textOutput.Visibility = Visibility.Hidden;
         }
 
         private void input2_Click(object sender, RoutedEventArgs e)
@@ -44,24 +63,31 @@ namespace LoadComparer
             if (openDialog.ShowDialog() == true)
             {
                 pathInput2 = openDialog.FileName;
+                nameFile2 = openDialog.SafeFileName;
             }
             if (pathInput2 != null)
             {
-                textInput2.Text = "Файл загружен";
-                textInput2.Foreground = new SolidColorBrush(Colors.Green);
+                book = excel.Workbooks.Open(pathInput2);
+                sheet = book.ActiveSheet;
+                List<string> head = new List<string>();
+                for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
+                {
+                    selectUid2.Items.Add(sheet.Cells[1, i].Value);
+                    selectLoad2.Items.Add(sheet.Cells[1, i].Value);
+                    if (sheet.Cells[1, i].Value.Contains("Uid"))
+                        selectUid2.SelectedIndex = i - 1;
+                    if (sheet.Cells[1, i].Value.Contains("Переток"))
+                        selectLoad2.SelectedIndex = i - 1;
+                }
+                excel.Quit();
             }
+            textOutput.Visibility = Visibility.Hidden;
         }
 
         private void compare_Click(object sender, RoutedEventArgs e)
         {
-            readySave = 0;
-            Excel.Application excel = new Excel.Application();
-            Excel.Workbook workbook = excel.Workbooks.Open(pathInput1);
-            Excel.Worksheet sheet = workbook.ActiveSheet;
-
-            List<string> head = new List<string>();
-            for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
-                head.Add(sheet.Cells[1, i].Value);
+            book = excel.Workbooks.Open(pathInput1);
+            sheet = book.ActiveSheet;
 
             Excel.Range selectColumn;
             Array array;
@@ -73,101 +99,91 @@ namespace LoadComparer
 
             int numberOfUid;
             int numberOfLoad;
-            if (head.FirstOrDefault(x => x.Contains("Uid")) != null && head.FirstOrDefault(x => x.Contains("Переток")) != null)
-            {
-                readySave++;
-                numberOfUid = head.IndexOf(head.FirstOrDefault(x => x.Contains("Uid"))) + 1;
-                numberOfLoad = head.IndexOf(head.FirstOrDefault(x => x.Contains("Переток"))) + 1;
-                selectColumn = sheet.UsedRange.Columns[numberOfUid];
-                array = (Array)selectColumn.Cells.Value2;
-                uid1 = array.OfType<object>().Select(o => o.ToString()).ToList();
-                selectColumn = sheet.UsedRange.Columns[numberOfLoad];
-                array = (Array)selectColumn.Cells.Value2;
-                load1 = array.OfType<object>().Select(o => o.ToString()).ToList();
-            }
-            else
-                MessageBox.Show("В 1 файле отсутствует столбец с названием содержащим \"Uid\" или \"Переток\"");
+
+            numberOfUid = selectUid1.SelectedIndex + 1;
+            numberOfLoad = selectLoad1.SelectedIndex + 1;
+            selectColumn = sheet.UsedRange.Columns[numberOfUid];
+            array = (Array)selectColumn.Cells.Value2;
+            uid1 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            selectColumn = sheet.UsedRange.Columns[numberOfLoad];
+            array = (Array)selectColumn.Cells.Value2;
+            load1 = array.OfType<object>().Select(o => o.ToString()).ToList();
 
             excel.Quit();
-            workbook = excel.Workbooks.Open(pathInput2);
-            sheet = workbook.ActiveSheet;
-            head.Clear();
-            for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
-                head.Add(sheet.Cells[1, i].Value);
+            book = excel.Workbooks.Open(pathInput2);
+            sheet = book.ActiveSheet;
 
-            if (head.FirstOrDefault(x => x.Contains("Uid")) != null && head.FirstOrDefault(x => x.Contains("Переток")) != null)
-            {
-                readySave++;
-                numberOfUid = head.IndexOf(head.FirstOrDefault(x => x.Contains("Uid"))) + 1;
-                numberOfLoad = head.IndexOf(head.FirstOrDefault(x => x.Contains("Переток"))) + 1;
-                selectColumn = sheet.UsedRange.Columns[numberOfUid];
-                array = (Array)selectColumn.Cells.Value2;
-                uid2 = array.OfType<object>().Select(o => o.ToString()).ToList();
-                selectColumn = sheet.UsedRange.Columns[numberOfLoad];
-                array = (Array)selectColumn.Cells.Value2;
-                load2 = array.OfType<object>().Select(o => o.ToString()).ToList();
-                excel.Quit();
-            }
-            else
-                MessageBox.Show("Во 2 файле отсутствует столбец с названием содержащим \"Uid\" или \"Переток\"");
-            
-            if(readySave == 2)
-            {
-                List<string> exceptUid1 = uid1.Except(uid2).ToList();
-                List<string> exceptUid2 = uid2.Except(uid1).ToList();
-                List<string> intersectUid = uid1.Intersect(uid2).ToList();
-                List<string> notEqualLoad = new List<string>();
-                foreach (var u in intersectUid)
-                {
-                    var res = uid2.FirstOrDefault(x => x == u);
-                    if (res != null)
-                    {
-                        var ind1 = uid1.IndexOf(res);
-                        var ind2 = uid2.IndexOf(res);
-                        if (load1[ind1] != load2[ind2])
-                            notEqualLoad.Add(u);
-                    }
-                }
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
-                if (saveFileDialog.ShowDialog() == true)
-                {
-                    pathOutput = saveFileDialog.FileName;
-                    excel = new Excel.Application();
-                    workbook = excel.Workbooks.Add(Type.Missing);
-                    sheet = workbook.ActiveSheet;
-                    var range = sheet.get_Range("A1", "C1");
-                    range.ColumnWidth = 35;
-                    range.Interior.Color = Excel.XlRgbColor.rgbLightSkyBlue;
-                    range.Cells.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+            numberOfUid = selectUid2.SelectedIndex + 1;
+            numberOfLoad = selectLoad2.SelectedIndex + 1;
+            selectColumn = sheet.UsedRange.Columns[numberOfUid];
+            array = (Array)selectColumn.Cells.Value2;
+            uid2 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            selectColumn = sheet.UsedRange.Columns[numberOfLoad];
+            array = (Array)selectColumn.Cells.Value2;
+            load2 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            excel.Quit();
 
-                    sheet.Cells[1, 1].Value = "Uid: нет во втором файле";
-                    for (int i = 0; i < exceptUid1.Count; i++)
-                    {
-                        sheet.Cells[i + 2, 1].Value = exceptUid1[i];
-                    }
-                    sheet.Cells[1, 2].Value = "Uid: нет в первом файле";
-                    for (int i = 0; i < exceptUid2.Count; i++)
-                    {
-                        sheet.Cells[i + 2, 2].Value = exceptUid2[i];
-                    }
-                    sheet.Cells[1, 3].Value = "Uid: не совпадают значения";
-                    for (int i = 0; i < notEqualLoad.Count; i++)
-                    {
-                        sheet.Cells[i + 2, 3].Value = notEqualLoad[i];
-                    }
-                    try
-                    {
-                        excel.Application.ActiveWorkbook.SaveAs(pathOutput);
-                        textOutput.Text = "Сохранение успешно";
-                    }
-                    catch
-                    {
-                        MessageBox.Show("Нет доступа для записи в файл.");
-                    }
+
+
+            List<string> exceptUid1 = uid1.Except(uid2).ToList();
+            List<string> exceptUid2 = uid2.Except(uid1).ToList();
+            List<string> intersectUid = uid1.Intersect(uid2).ToList();
+            List<string> notEqualLoad = new List<string>();
+            foreach (var u in intersectUid)
+            {
+                var res = uid2.FirstOrDefault(x => x == u);
+                if (res != null)
+                {
+                    var ind1 = uid1.IndexOf(res);
+                    var ind2 = uid2.IndexOf(res);
+                    if (load1[ind1] != load2[ind2])
+                        notEqualLoad.Add(u);
                 }
-                excel.Quit();
             }
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.FileName = $"Сравнение {nameFile1} и {nameFile2}";
+            saveFileDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                pathOutput = saveFileDialog.FileName;
+                book = excel.Workbooks.Add(Type.Missing);
+                sheet = book.ActiveSheet;
+                var range = sheet.get_Range("A1", "C1");
+                range.ColumnWidth = 35;
+                range.Interior.Color = Excel.XlRgbColor.rgbLightSkyBlue;
+                range.Cells.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+
+                sheet.Cells[1, 1].Value = "Uid: нет во втором файле";
+                for (int i = 0; i < exceptUid1.Count; i++)
+                {
+                    sheet.Cells[i + 2, 1].Value = exceptUid1[i];
+                }
+                sheet.Cells[1, 2].Value = "Uid: нет в первом файле";
+                for (int i = 0; i < exceptUid2.Count; i++)
+                {
+                    sheet.Cells[i + 2, 2].Value = exceptUid2[i];
+                }
+                sheet.Cells[1, 3].Value = "Uid: не совпадают значения";
+                for (int i = 0; i < notEqualLoad.Count; i++)
+                {
+                    sheet.Cells[i + 2, 3].Value = notEqualLoad[i];
+                }
+                try
+                {
+                    excel.Application.ActiveWorkbook.SaveAs(pathOutput);
+                }
+                catch
+                {
+                    MessageBox.Show("Нет доступа для записи в файл.");
+                }
+                textOutput.Visibility = Visibility.Visible;
+            }
+            excel.Quit();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            excel.Quit();
         }
     }
 }
