@@ -30,8 +30,10 @@ namespace LoadComparer
 
         private void input1_Click(object sender, RoutedEventArgs e)
         {
+            selectUid1.Items.Clear();
+            selectLoad1.Items.Clear();
             OpenFileDialog openDialog = new OpenFileDialog();
-            openDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
+            openDialog.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm;*.csv|All files|*.*";
             if (openDialog.ShowDialog() == true)
             {
                 pathInput1 = openDialog.FileName;
@@ -39,7 +41,10 @@ namespace LoadComparer
             }
             if (pathInput1 != null)
             {
-                book = excel.Workbooks.Open(pathInput1);
+                if (pathInput1.Substring(pathInput1.Count() - 5).Contains(".csv"))
+                    book = excel.Workbooks.OpenXML(pathInput1);
+                else
+                    book = excel.Workbooks.Open(pathInput1);
                 sheet = book.ActiveSheet;
                 List<string> head = new List<string>();
                 for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
@@ -58,8 +63,10 @@ namespace LoadComparer
 
         private void input2_Click(object sender, RoutedEventArgs e)
         {
+            selectUid2.Items.Clear();
+            selectLoad2.Items.Clear();
             OpenFileDialog openDialog = new OpenFileDialog();
-            openDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
+            openDialog.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm;*.csv|All files|*.*";
             if (openDialog.ShowDialog() == true)
             {
                 pathInput2 = openDialog.FileName;
@@ -67,7 +74,10 @@ namespace LoadComparer
             }
             if (pathInput2 != null)
             {
-                book = excel.Workbooks.Open(pathInput2);
+                if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
+                    book = excel.Workbooks.OpenXML(pathInput2);
+                else
+                    book = excel.Workbooks.Open(pathInput2);
                 sheet = book.ActiveSheet;
                 List<string> head = new List<string>();
                 for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
@@ -86,7 +96,10 @@ namespace LoadComparer
 
         private void compare_Click(object sender, RoutedEventArgs e)
         {
-            book = excel.Workbooks.Open(pathInput1);
+            if (pathInput1.Substring(pathInput1.Count() - 5).Contains(".csv"))
+                book = excel.Workbooks.OpenXML(pathInput1);
+            else
+                book = excel.Workbooks.Open(pathInput1);
             sheet = book.ActiveSheet;
 
             Excel.Range selectColumn;
@@ -110,7 +123,11 @@ namespace LoadComparer
             load1 = array.OfType<object>().Select(o => o.ToString()).ToList();
 
             excel.Quit();
-            book = excel.Workbooks.Open(pathInput2);
+            if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
+                book = excel.Workbooks.OpenXML(pathInput2);
+            else
+                book = excel.Workbooks.Open(pathInput2);
+            
             sheet = book.ActiveSheet;
 
             numberOfUid = selectUid2.SelectedIndex + 1;
@@ -141,7 +158,7 @@ namespace LoadComparer
                 }
             }
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.FileName = $"Сравнение {nameFile1} и {nameFile2}";
+            saveFileDialog.FileName = $"Сравнение {nameFile1} и {nameFile2}.xlsx";
             saveFileDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
             if (saveFileDialog.ShowDialog() == true)
             {
