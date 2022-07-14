@@ -108,21 +108,29 @@ namespace LoadComparer
             List<string> uid2 = new List<string>();
             List<string> load1 = new List<string>();
             List<string> load2 = new List<string>();
+            List<string> name1 = new List<string>();
+            List<string> name2 = new List<string>();
 
 
             int numberOfUid;
             int numberOfLoad;
+            int numberOfName;
 
             numberOfUid = selectUid1.SelectedIndex + 1;
             numberOfLoad = selectLoad1.SelectedIndex + 1;
+            numberOfName = selectLoad1.SelectedIndex;
+
             selectColumn = sheet.UsedRange.Columns[numberOfUid];
             array = (Array)selectColumn.Cells.Value2;
             uid1 = array.OfType<object>().Select(o => o.ToString()).ToList();
             selectColumn = sheet.UsedRange.Columns[numberOfLoad];
             array = (Array)selectColumn.Cells.Value2;
             load1 = array.OfType<object>().Select(o => o.ToString()).ToList();
-
+            selectColumn = sheet.UsedRange.Columns[numberOfName];
+            array = (Array)selectColumn.Cells.Value2;
+            name1 = array.OfType<object>().Select(o => o.ToString()).ToList();
             excel.Quit();
+
             if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
                 book = excel.Workbooks.OpenXML(pathInput2);
             else
@@ -132,20 +140,33 @@ namespace LoadComparer
 
             numberOfUid = selectUid2.SelectedIndex + 1;
             numberOfLoad = selectLoad2.SelectedIndex + 1;
+            numberOfName = selectLoad1.SelectedIndex;
+
             selectColumn = sheet.UsedRange.Columns[numberOfUid];
             array = (Array)selectColumn.Cells.Value2;
             uid2 = array.OfType<object>().Select(o => o.ToString()).ToList();
             selectColumn = sheet.UsedRange.Columns[numberOfLoad];
             array = (Array)selectColumn.Cells.Value2;
             load2 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            selectColumn = sheet.UsedRange.Columns[numberOfName];
+            array = (Array)selectColumn.Cells.Value2;
+            name2 = array.OfType<object>().Select(o => o.ToString()).ToList();
             excel.Quit();
 
 
 
             List<string> exceptUid1 = uid1.Except(uid2).ToList();
             List<string> exceptUid2 = uid2.Except(uid1).ToList();
+            List<string> notEqualLoadUid = new List<string>();
+            List<string> exceptLoad1 = uid1.Except(uid2).ToList();
+            List<string> exceptLoad2 = uid2.Except(uid1).ToList();
+            List<string> notEqualLoadLoad1 = new List<string>();
+            List<string> notEqualLoadLoad2 = new List<string>();
+            List<string> exceptName1 = uid1.Except(uid2).ToList();
+            List<string> exceptName2 = uid2.Except(uid1).ToList();
+            List<string> notEqualLoadName = new List<string>();
+
             List<string> intersectUid = uid1.Intersect(uid2).ToList();
-            List<string> notEqualLoad = new List<string>();
             foreach (var u in intersectUid)
             {
                 var res = uid2.FirstOrDefault(x => x == u);
@@ -154,7 +175,13 @@ namespace LoadComparer
                     var ind1 = uid1.IndexOf(res);
                     var ind2 = uid2.IndexOf(res);
                     if (load1[ind1] != load2[ind2])
-                        notEqualLoad.Add(u);
+                    {
+                        notEqualLoadUid.Add(u);
+                        notEqualLoadLoad1.Add(load1[intersectUid.IndexOf(u)]);
+                        notEqualLoadLoad2.Add(load2[intersectUid.IndexOf(u)]);
+                        notEqualLoadName.Add(name1[intersectUid.IndexOf(u)]);
+                    }
+                        
                 }
             }
             SaveFileDialog saveFileDialog = new SaveFileDialog();
@@ -181,9 +208,24 @@ namespace LoadComparer
                     sheet.Cells[i + 2, 2].Value = exceptUid2[i];
                 }
                 sheet.Cells[1, 3].Value = "Uid: не совпадают значения";
-                for (int i = 0; i < notEqualLoad.Count; i++)
+                for (int i = 0; i < notEqualLoadUid.Count; i++)
                 {
-                    sheet.Cells[i + 2, 3].Value = notEqualLoad[i];
+                    sheet.Cells[i + 2, 3].Value = notEqualLoadUid[i];
+                }
+                sheet.Cells[1, 4].Value = "Название";
+                for (int i = 0; i < notEqualLoadUid.Count; i++)
+                {
+                    sheet.Cells[i + 2, 4].Value = notEqualLoadName[i];
+                }
+                sheet.Cells[1, 5].Value = "P1";
+                for (int i = 0; i < notEqualLoadUid.Count; i++)
+                {
+                    sheet.Cells[i + 2, 5].Value = notEqualLoadLoad1[i];
+                }
+                sheet.Cells[1, 6].Value = "P2";
+                for (int i = 0; i < notEqualLoadUid.Count; i++)
+                {
+                    sheet.Cells[i + 2, 6].Value = notEqualLoadLoad2[i];
                 }
                 try
                 {

@@ -22,8 +22,8 @@
         <TextBlock Grid.Column="2" Grid.Row="0" Text="Столбец значения" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,35,0,0" Text="- поиск разности по Uid" Foreground="Black" FontSize="18"/>
         <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,65,0,0" Text="- поиск отличающихся нагрузок" Foreground="Black" FontSize="20"/>
-        <Button x:Name="input1" Grid.Column="0" Grid.Row="1" Content="Загрузить XLSX 1" Margin="10,20,10,20" FontSize="18" Click="input1_Click"/>
-        <Button x:Name="input2" Grid.Column="0" Grid.Row="2" Content="Загрузить XLSX 2" Margin="10,20,10,20" FontSize="18" Click="input2_Click"/>
+        <Button x:Name="input1" Grid.Column="0" Grid.Row="1" Content="Загрузить файл 1" Margin="10,20,10,20" FontSize="18" Click="input1_Click"/>
+        <Button x:Name="input2" Grid.Column="0" Grid.Row="2" Content="Загрузить файл 2" Margin="10,20,10,20" FontSize="18" Click="input2_Click"/>
         <Button x:Name="compare" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3" Content="Сравнить" Margin="10,20,0,20" FontSize="18" Click="compare_Click"/>
         <ListBox x:Name="selectUid1" Grid.Column="1" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
         <ListBox x:Name="selectUid2" Grid.Column="1" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
