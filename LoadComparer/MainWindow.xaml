@@ -5,13 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LoadComparer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" MinHeight="320" MinWidth="420" MaxHeight="320" MaxWidth="420" Height="330" Width="420">
     <Grid>
-        <Button x:Name="input1"  Content="Загрузить" HorizontalAlignment="Left" Margin="26,30,0,0" VerticalAlignment="Top" Height="32" Width="148" Click="input1_Click"/>
-        <Button x:Name="input2"  Content="Загрузить" HorizontalAlignment="Left" Margin="26,74,0,0" VerticalAlignment="Top" Height="32" Width="148" Click="input2_Click"/>
-        <TextBlock x:Name="textInput1" HorizontalAlignment="Left" Margin="188,38,0,0" TextWrapping="Wrap" Text="Файл не загружен" Foreground="Red" VerticalAlignment="Top"/>
-        <TextBlock x:Name="textInput2" HorizontalAlignment="Left" Margin="188,82,0,0" TextWrapping="Wrap" Text="Файл не загружен" Foreground="Red" VerticalAlignment="Top"/>
-        <Button x:Name="compare"  Content="Сравнить" HorizontalAlignment="Left" Margin="26,139,0,0" VerticalAlignment="Top" Height="32" Width="148" Click="compare_Click"/>
-        <TextBlock x:Name="dev" HorizontalAlignment="Left" Margin="26,204,0,0" TextWrapping="Wrap" Text="Файл не загружен" Foreground="Black" VerticalAlignment="Top"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,5,0,0" Text="Для двух xlsx файлов:" Foreground="Black" FontSize="20"/>
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,35,0,0" Text="- поиск разности по Uid" Foreground="Black" FontSize="20"/>
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,65,0,0" Text="- поиск отличающихся нагрузок" Foreground="Black" FontSize="20"/>
+        <Button x:Name="input1" Grid.Column="0" Grid.Row="1" Content="Загрузить XLSX 1" Margin="10" FontSize="20" Click="input1_Click"/>
+        <Button x:Name="input2" Grid.Column="0" Grid.Row="2" Content="Загрузить XLSX 2" Margin="10" FontSize="20" Click="input2_Click"/>
+        <Button x:Name="compare" Grid.Column="0" Grid.Row="3" Content="Сравнить" Margin="10" FontSize="20" Click="compare_Click"/>
+        <TextBlock x:Name="textInput1" Grid.Column="1" Grid.Row="1" Text="Файл не загружен" Foreground="Red" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Width="201"/>
+        <TextBlock x:Name="textInput2" Grid.Column="1" Grid.Row="2" Text="Файл не загружен" Foreground="Red" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+        <TextBlock x:Name="textOutput" Grid.Column="1" Grid.Row="3" Text="" Foreground="Green" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
     </Grid>
 </Window>
