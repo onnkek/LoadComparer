@@ -111,8 +111,8 @@ namespace LoadComparer
             List<string> uid = new List<string>();
             List<string> load = new List<string>();
             List<string> name = new List<string>();
-            int numberOfUid = selectUid2.SelectedIndex + 1;
-            int numberOfLoad = selectLoad2.SelectedIndex + 1;
+            int numberOfUid = selectUid1.SelectedIndex + 1;
+            int numberOfLoad = selectLoad1.SelectedIndex + 1;
             int numberOfName = selectLoad1.SelectedIndex;
 
             selectColumn = sheet.UsedRange.Columns[numberOfUid];
@@ -139,7 +139,7 @@ namespace LoadComparer
 
             numberOfUid = selectUid2.SelectedIndex + 1;
             numberOfLoad = selectLoad2.SelectedIndex + 1;
-            numberOfName = selectLoad1.SelectedIndex;
+            numberOfName = selectLoad2.SelectedIndex;
 
             selectColumn = sheet.UsedRange.Columns[numberOfUid];
             array = (Array)selectColumn.Cells.Value2;
