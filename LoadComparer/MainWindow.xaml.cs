@@ -96,6 +96,10 @@ namespace LoadComparer
 
         private void compare_Click(object sender, RoutedEventArgs e)
         {
+            excel.Quit();
+            List<Row> rows1 = new List<Row>();
+            List<Row> rows2 = new List<Row>();
+
             if (pathInput1.Substring(pathInput1.Count() - 5).Contains(".csv"))
                 book = excel.Workbooks.OpenXML(pathInput1);
             else
@@ -104,38 +108,33 @@ namespace LoadComparer
 
             Excel.Range selectColumn;
             Array array;
-            List<string> uid1 = new List<string>();
-            List<string> uid2 = new List<string>();
-            List<string> load1 = new List<string>();
-            List<string> load2 = new List<string>();
-            List<string> name1 = new List<string>();
-            List<string> name2 = new List<string>();
-
-
-            int numberOfUid;
-            int numberOfLoad;
-            int numberOfName;
-
-            numberOfUid = selectUid1.SelectedIndex + 1;
-            numberOfLoad = selectLoad1.SelectedIndex + 1;
-            numberOfName = selectLoad1.SelectedIndex;
+            List<string> uid = new List<string>();
+            List<string> load = new List<string>();
+            List<string> name = new List<string>();
+            int numberOfUid = selectUid2.SelectedIndex + 1;
+            int numberOfLoad = selectLoad2.SelectedIndex + 1;
+            int numberOfName = selectLoad1.SelectedIndex;
 
             selectColumn = sheet.UsedRange.Columns[numberOfUid];
             array = (Array)selectColumn.Cells.Value2;
-            uid1 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            uid = array.OfType<object>().Select(o => o.ToString()).ToList();
             selectColumn = sheet.UsedRange.Columns[numberOfLoad];
             array = (Array)selectColumn.Cells.Value2;
-            load1 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            load = array.OfType<object>().Select(o => o.ToString()).ToList();
             selectColumn = sheet.UsedRange.Columns[numberOfName];
             array = (Array)selectColumn.Cells.Value2;
-            name1 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            name = array.OfType<object>().Select(o => o.ToString()).ToList();
             excel.Quit();
+
+            for (int i = 1; i < uid.Count; i++)
+                rows1.Add(new Row(name[i], uid[i], Convert.ToDouble(load[i])));
+
 
             if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
                 book = excel.Workbooks.OpenXML(pathInput2);
             else
                 book = excel.Workbooks.Open(pathInput2);
-            
+
             sheet = book.ActiveSheet;
 
             numberOfUid = selectUid2.SelectedIndex + 1;
@@ -144,46 +143,31 @@ namespace LoadComparer
 
             selectColumn = sheet.UsedRange.Columns[numberOfUid];
             array = (Array)selectColumn.Cells.Value2;
-            uid2 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            uid = array.OfType<object>().Select(o => o.ToString()).ToList();
             selectColumn = sheet.UsedRange.Columns[numberOfLoad];
             array = (Array)selectColumn.Cells.Value2;
-            load2 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            load = array.OfType<object>().Select(o => o.ToString()).ToList();
             selectColumn = sheet.UsedRange.Columns[numberOfName];
             array = (Array)selectColumn.Cells.Value2;
-            name2 = array.OfType<object>().Select(o => o.ToString()).ToList();
+            name = array.OfType<object>().Select(o => o.ToString()).ToList();
             excel.Quit();
 
+            for (int i = 1; i < uid.Count; i++)
+                rows2.Add(new Row(name[i], uid[i], Convert.ToDouble(load[i])));
 
+            List<Row> exceptUid1 = rows1.Where(x => !rows2.Any(y => y.Uid.Equals(x.Uid))).ToList();
+            List<Row> exceptUid2 = rows2.Where(x => !rows1.Any(y => y.Uid.Equals(x.Uid))).ToList();
+            List<Row> notEqualLoad = new List<Row>();
+            List<Row> intersectUid = rows1.Where(x => rows2.Any(y => y.Uid.Equals(x.Uid))).ToList();
 
-            List<string> exceptUid1 = uid1.Except(uid2).ToList();
-            List<string> exceptUid2 = uid2.Except(uid1).ToList();
-            List<string> notEqualLoadUid = new List<string>();
-            List<string> exceptLoad1 = uid1.Except(uid2).ToList();
-            List<string> exceptLoad2 = uid2.Except(uid1).ToList();
-            List<string> notEqualLoadLoad1 = new List<string>();
-            List<string> notEqualLoadLoad2 = new List<string>();
-            List<string> exceptName1 = uid1.Except(uid2).ToList();
-            List<string> exceptName2 = uid2.Except(uid1).ToList();
-            List<string> notEqualLoadName = new List<string>();
-
-            List<string> intersectUid = uid1.Intersect(uid2).ToList();
-            foreach (var u in intersectUid)
+            foreach (var r in intersectUid)
             {
-                var res = uid2.FirstOrDefault(x => x == u);
-                if (res != null)
-                {
-                    var ind1 = uid1.IndexOf(res);
-                    var ind2 = uid2.IndexOf(res);
-                    if (load1[ind1] != load2[ind2])
-                    {
-                        notEqualLoadUid.Add(u);
-                        notEqualLoadLoad1.Add(load1[intersectUid.IndexOf(u)]);
-                        notEqualLoadLoad2.Add(load2[intersectUid.IndexOf(u)]);
-                        notEqualLoadName.Add(name1[intersectUid.IndexOf(u)]);
-                    }
-                        
-                }
+                var res1 = rows1.FirstOrDefault(x => x.Uid == r.Uid);
+                var res2 = rows2.FirstOrDefault(x => x.Uid == r.Uid);
+                if (rows1[rows1.IndexOf(res1)].Value != rows2[rows2.IndexOf(res2)].Value)
+                    notEqualLoad.Add(r);
             }
+
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.FileName = $"Сравнение {nameFile1} и {nameFile2}.xlsx";
             saveFileDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
@@ -192,41 +176,50 @@ namespace LoadComparer
                 pathOutput = saveFileDialog.FileName;
                 book = excel.Workbooks.Add(Type.Missing);
                 sheet = book.ActiveSheet;
-                var range = sheet.get_Range("A1", "C1");
-                range.ColumnWidth = 35;
+                var range = sheet.get_Range("A1", "J2");
+                range.HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter;
                 range.Interior.Color = Excel.XlRgbColor.rgbLightSkyBlue;
                 range.Cells.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-
-                sheet.Cells[1, 1].Value = "Uid: нет во втором файле";
+                sheet.get_Range("A1", "C1").Merge();
+                sheet.get_Range("D1", "F1").Merge();
+                sheet.get_Range("G1", "J1").Merge();
+                sheet.Cells[1, 1].Value = "Нет во втором файле";
+                sheet.Cells[2, 1].Value = "Uid";
+                sheet.Cells[2, 2].Value = "Name";
+                sheet.Cells[2, 3].Value = "Value";
                 for (int i = 0; i < exceptUid1.Count; i++)
                 {
-                    sheet.Cells[i + 2, 1].Value = exceptUid1[i];
+                    sheet.Cells[i + 3, 1].Value = exceptUid1[i].Uid;
+                    sheet.Cells[i + 3, 2].Value = exceptUid1[i].Name;
+                    sheet.Cells[i + 3, 3].Value = exceptUid1[i].Value;
                 }
-                sheet.Cells[1, 2].Value = "Uid: нет в первом файле";
+                sheet.Cells[1, 4].Value = "Нет в первом файле";
+                sheet.Cells[2, 4].Value = "Uid";
+                sheet.Cells[2, 5].Value = "Name";
+                sheet.Cells[2, 6].Value = "Value";
                 for (int i = 0; i < exceptUid2.Count; i++)
                 {
-                    sheet.Cells[i + 2, 2].Value = exceptUid2[i];
+                    sheet.Cells[i + 3, 4].Value = exceptUid2[i].Uid;
+                    sheet.Cells[i + 3, 5].Value = exceptUid2[i].Name;
+                    sheet.Cells[i + 3, 6].Value = exceptUid2[i].Value;
                 }
-                sheet.Cells[1, 3].Value = "Uid: не совпадают значения";
-                for (int i = 0; i < notEqualLoadUid.Count; i++)
+                
+                
+                sheet.Cells[1, 7].Value = "Не совпадают значения";
+                sheet.Cells[2, 7].Value = "Uid";
+                sheet.Cells[2, 8].Value = "Name";
+                sheet.Cells[2, 9].Value = "Value1";
+                sheet.Cells[2, 10].Value = "Value2";
+                for (int i = 0; i < notEqualLoad.Count; i++)
                 {
-                    sheet.Cells[i + 2, 3].Value = notEqualLoadUid[i];
+                    sheet.Cells[i + 3, 7].Value = exceptUid2[i].Uid;
+                    sheet.Cells[i + 3, 8].Value = exceptUid2[i].Name;
+                    sheet.Cells[i + 3, 9].Value = rows1.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value;
+                    sheet.Cells[i + 3, 10].Value = rows2.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value;
+
+
                 }
-                sheet.Cells[1, 4].Value = "Название";
-                for (int i = 0; i < notEqualLoadUid.Count; i++)
-                {
-                    sheet.Cells[i + 2, 4].Value = notEqualLoadName[i];
-                }
-                sheet.Cells[1, 5].Value = "P1";
-                for (int i = 0; i < notEqualLoadUid.Count; i++)
-                {
-                    sheet.Cells[i + 2, 5].Value = notEqualLoadLoad1[i];
-                }
-                sheet.Cells[1, 6].Value = "P2";
-                for (int i = 0; i < notEqualLoadUid.Count; i++)
-                {
-                    sheet.Cells[i + 2, 6].Value = notEqualLoadLoad2[i];
-                }
+                sheet.Columns.AutoFit();
                 try
                 {
                     excel.Application.ActiveWorkbook.SaveAs(pathOutput);
@@ -243,6 +236,18 @@ namespace LoadComparer
         private void Window_Closed(object sender, EventArgs e)
         {
             excel.Quit();
+        }
+        public class Row
+        {
+            public Row(string name, string uid, double value)
+            {
+                Name = name;
+                Uid = uid;
+                Value = value;
+            }
+            public string Name { get; set; }
+            public double Value { get; set; }
+            public string Uid { get; set; }
         }
     }
 }
