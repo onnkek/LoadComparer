@@ -127,7 +127,7 @@ namespace LoadComparer
             excel.Quit();
 
             for (int i = 1; i < uid.Count; i++)
-                rows1.Add(new Row(name[i], uid[i], Convert.ToDouble(load[i])));
+                rows1.Add(new Row(name[i], uid[i], load[i]));
 
 
             if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
@@ -153,7 +153,7 @@ namespace LoadComparer
             excel.Quit();
 
             for (int i = 1; i < uid.Count; i++)
-                rows2.Add(new Row(name[i], uid[i], Convert.ToDouble(load[i])));
+                rows2.Add(new Row(name[i], uid[i], load[i]));
 
             List<Row> exceptUid1 = rows1.Where(x => !rows2.Any(y => y.Uid.Equals(x.Uid))).ToList();
             List<Row> exceptUid2 = rows2.Where(x => !rows1.Any(y => y.Uid.Equals(x.Uid))).ToList();
@@ -191,7 +191,10 @@ namespace LoadComparer
                 {
                     sheet.Cells[i + 3, 1].Value = exceptUid1[i].Uid;
                     sheet.Cells[i + 3, 2].Value = exceptUid1[i].Name;
-                    sheet.Cells[i + 3, 3].Value = exceptUid1[i].Value;
+                    if (Double.TryParse(exceptUid1[i].Value, out double value))
+                        sheet.Cells[i + 3, 3].Value = value;
+                    else
+                        sheet.Cells[i + 3, 3].Value = exceptUid1[i].Value;
                 }
                 sheet.Cells[1, 4].Value = "Нет в первом файле";
                 sheet.Cells[2, 4].Value = "Uid";
@@ -201,7 +204,10 @@ namespace LoadComparer
                 {
                     sheet.Cells[i + 3, 4].Value = exceptUid2[i].Uid;
                     sheet.Cells[i + 3, 5].Value = exceptUid2[i].Name;
-                    sheet.Cells[i + 3, 6].Value = exceptUid2[i].Value;
+                    if (Double.TryParse(exceptUid2[i].Value, out double value1))
+                        sheet.Cells[i + 3, 6].Value = value1;
+                    else
+                        sheet.Cells[i + 3, 6].Value = exceptUid2[i].Value;
                 }
                 
                 
@@ -212,10 +218,16 @@ namespace LoadComparer
                 sheet.Cells[2, 10].Value = "Value2";
                 for (int i = 0; i < notEqualLoad.Count; i++)
                 {
-                    sheet.Cells[i + 3, 7].Value = exceptUid2[i].Uid;
-                    sheet.Cells[i + 3, 8].Value = exceptUid2[i].Name;
-                    sheet.Cells[i + 3, 9].Value = rows1.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value;
-                    sheet.Cells[i + 3, 10].Value = rows2.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value;
+                    sheet.Cells[i + 3, 7].Value = notEqualLoad[i].Uid;
+                    sheet.Cells[i + 3, 8].Value = notEqualLoad[i].Name;
+                    if (Double.TryParse(rows1.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value, out double value2))
+                        sheet.Cells[i + 3, 9].Value = value2;
+                    else
+                        sheet.Cells[i + 3, 9].Value = rows1.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value;
+                    if (Double.TryParse(rows2.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value, out double value3))
+                        sheet.Cells[i + 3, 10].Value = value3;
+                    else
+                        sheet.Cells[i + 3, 10].Value = rows2.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value;
 
 
                 }
@@ -239,14 +251,14 @@ namespace LoadComparer
         }
         public class Row
         {
-            public Row(string name, string uid, double value)
+            public Row(string name, string uid, string value)
             {
                 Name = name;
                 Uid = uid;
                 Value = value;
             }
             public string Name { get; set; }
-            public double Value { get; set; }
+            public string Value { get; set; }
             public string Uid { get; set; }
         }
     }
