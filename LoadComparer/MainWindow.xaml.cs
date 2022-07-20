@@ -30,11 +30,14 @@ namespace LoadComparer
         public static Excel.Application excel = new Excel.Application();
         public static Excel.Workbook book;
         public static Excel.Worksheet sheet;
+        public static int rowCount1;
+        public static int rowCount2;
 
         private void input1_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                textOutput.Visibility = Visibility.Hidden;
                 selectUid1.Items.Clear();
                 selectLoad1.Items.Clear();
                 OpenFileDialog openDialog = new OpenFileDialog();
@@ -51,6 +54,7 @@ namespace LoadComparer
                     else
                         book = excel.Workbooks.Open(pathInput1);
                     sheet = book.ActiveSheet;
+                    rowCount1 = sheet.Rows.CurrentRegion.EntireRow.Count;
                     List<string> head = new List<string>();
                     for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
                     {
@@ -89,6 +93,7 @@ namespace LoadComparer
         {
             try
             {
+                textOutput.Visibility = Visibility.Hidden;
                 selectUid2.Items.Clear();
                 selectLoad2.Items.Clear();
                 OpenFileDialog openDialog = new OpenFileDialog();
@@ -105,6 +110,7 @@ namespace LoadComparer
                     else
                         book = excel.Workbooks.Open(pathInput2);
                     sheet = book.ActiveSheet;
+                    rowCount2 = sheet.Rows.CurrentRegion.EntireRow.Count;
                     List<string> head = new List<string>();
                     for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
                     {
@@ -178,7 +184,7 @@ namespace LoadComparer
                 {
                     UpdateProgressBarDelegate updProgress = new UpdateProgressBarDelegate(progressBar.SetValue);
                     double pbValue = 0;
-                    progressBar.Maximum = 7;
+                    progressBar.Maximum = 7 + selectUid1.Items.Count * rowCount1 + selectUid2.Items.Count * rowCount2;
                     progressBar.Value = pbValue;
                     List<string> outColumn1 = new List<string>();
                     List<string> outColumn2 = new List<string>();
@@ -246,7 +252,11 @@ namespace LoadComparer
                             var array = (Array)column.Cells.Value2;
                             for (int j = 0; j < dataFile1.GetLength(1); j++)
                             {
-                                dataFile1[i, j] = array.OfType<object>().Select(o => o.ToString()).ToList()[j];
+                                Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                                if (array.GetValue(j + 1, 1).ToString() != "")
+                                    dataFile1[i, j] = array.OfType<object>().Select(o => o.ToString()).ToList()[j];
+                                else
+                                    dataFile1[i, j] = "";
                             }
                         }
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
@@ -272,7 +282,11 @@ namespace LoadComparer
                             var array = (Array)column.Cells.Value2;
                             for (int j = 0; j < dataFile2.GetLength(1); j++)
                             {
-                                dataFile2[i, j] = array.OfType<object>().Select(o => o.ToString()).ToList()[j];
+                                Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                                if (array.GetValue(j + 1, 1).ToString() != "")
+                                    dataFile2[i, j] = array.OfType<object>().Select(o => o.ToString()).ToList()[j];
+                                else
+                                    dataFile2[i, j] = "";
                             }
                         }
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
@@ -425,9 +439,13 @@ namespace LoadComparer
                         Marshal.ReleaseComObject(excel);
                         pbValue = 0;
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, pbValue });
-                    });
-                    textOutput.Visibility = Visibility.Visible;
+                    }).ContinueWith(delegate { textOutput.Visibility = Visibility.Visible; });
+                    
                 }
+            }
+            catch
+            {
+                MessageBox.Show("Произошла непредвиденная ошибка");
             }
             finally
             {
