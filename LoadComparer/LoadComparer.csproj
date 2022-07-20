@@ -129,5 +129,22 @@
   <ItemGroup>
     <Resource Include="compare.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Compare.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\File.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Column.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Data.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Key.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

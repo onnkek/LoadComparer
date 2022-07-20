@@ -5,31 +5,70 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LoadComparer"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="520" MinWidth="830" Height="520" Width="830" Closed="Window_Closed">
+        Title="FileComparer" Height="435" Width="1145" Closed="Window_Closed" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="60"/>
             <RowDefinition Height="160"/>
             <RowDefinition Height="160"/>
-            <RowDefinition Height="130"/>
+            <RowDefinition Height="15"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="230"/>
+            <ColumnDefinition Width="300"/>
             <ColumnDefinition Width="300"/>
             <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="1" Grid.Row="0" Text="Столбец Uid" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <TextBlock Grid.Column="2" Grid.Row="0" Text="Столбец значения" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,35,0,0" Text="- поиск разности по Uid" Foreground="Black" FontSize="18"/>
-        <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Margin="10,65,0,0" Text="- поиск отличающихся нагрузок" Foreground="Black" FontSize="20"/>
-        <Button x:Name="input1" Grid.Column="0" Grid.Row="1" Content="Загрузить файл 1" Margin="10,20,10,20" FontSize="18" Click="input1_Click"/>
-        <Button x:Name="input2" Grid.Column="0" Grid.Row="2" Content="Загрузить файл 2" Margin="10,20,10,20" FontSize="18" Click="input2_Click"/>
-        <Button x:Name="compare" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="3" Content="Сравнить" Margin="10,20,0,20" FontSize="18" Click="compare_Click"/>
-        <ListBox x:Name="selectUid1" Grid.Column="1" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
-        <ListBox x:Name="selectUid2" Grid.Column="1" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
-        <ListBox x:Name="selectLoad1" Grid.Column="2" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
-        <ListBox x:Name="selectLoad2" Grid.Column="2" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
-        <TextBlock x:Name="textOutput" Grid.Column="0" Grid.Row="0" Text="Сохранение успешно!"  Foreground="Green" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+        <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Image Source="Resources/Key.png" Height="50"/>
+            <TextBlock Text="Выбор ключа" Margin="5,0,0,0" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Calibri"/>
+        </StackPanel>
+        <StackPanel Grid.Column="2" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Image Source="Resources/Data.png" Height="50"/>
+            <TextBlock Text="Выбор значения" Margin="10,0,0,0" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Calibri"/>
+        </StackPanel>
+        <StackPanel Grid.Column="3" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Image Source="Resources/Column.png" Height="50"/>
+            <TextBlock Text="Выбор столбцов" Margin="5,0,0,0" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Calibri"/>
+        </StackPanel>
+
+        <Button x:Name="input1" BorderBrush="LightBlue" Grid.Column="0" Grid.Row="1" Background="White" Margin="10,0,10,80" FontSize="18" Click="input1_Click">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Image Source="Resources/File.png" Height="60"/>
+                <TextBlock VerticalAlignment="Center" Margin="5,0,0,0" FontFamily="Calibri">Загрузить файл 1</TextBlock>
+            </StackPanel>
+        </Button>
+        <Button x:Name="input2" BorderBrush="LightBlue" Grid.Column="0" Grid.Row="2" Background="White" Margin="10,-40,10,120" FontSize="18" Click="input2_Click">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Image Source="Resources/File.png" Height="60"/>
+                <TextBlock VerticalAlignment="Center" Margin="5,0,0,0" FontFamily="Calibri">Загрузить файл 2</TextBlock>
+            </StackPanel>
+        </Button>
+        <Button x:Name="compare" BorderBrush="LightBlue" Grid.Column="0" Grid.Row="2" Background="White" Margin="10,80,10,0" FontSize="18" Click="compare_Click">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Image Source="Resources/Compare.png" Height="60"/>
+                <TextBlock VerticalAlignment="Center" Margin="5,0,0,0" FontFamily="Calibri">Сравнить файлы</TextBlock>
+            </StackPanel>
+        </Button>
+
+        <ListBox x:Name="selectUid1" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,0" SelectionMode="Extended" Grid.Column="1" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <ListBox x:Name="selectUid2" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,0" SelectionMode="Extended" Grid.Column="1" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <ListBox x:Name="selectLoad1" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,0" Grid.Column="2" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <ListBox x:Name="selectLoad2" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,0" Grid.Column="2" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <TextBlock x:Name="textOutput" Grid.Column="0" Grid.Row="0" FontFamily="Calibri" Text="Сохранение успешно!"  Foreground="Green" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+
+        <ScrollViewer Grid.Column="3" Grid.Row="1" Margin="0,0,12,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <Border BorderBrush="LightBlue" BorderThickness="1">
+                <StackPanel x:Name="selectColumn1" Margin="4"/>
+            </Border>
+        </ScrollViewer>
+        <ScrollViewer Grid.Column="3" Grid.Row="2" Margin="0,0,12,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <Border BorderBrush="LightBlue" BorderThickness="1">
+                <StackPanel x:Name="selectColumn2" Margin="4"/>
+            </Border>
+        </ScrollViewer>
+        <ProgressBar x:Name="progressBar" Margin="0,5,0,-8" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="4" Value="0" Minimum="0" Background="White" BorderBrush="White" Foreground="Blue"  />
+
 
     </Grid>
 </Window>

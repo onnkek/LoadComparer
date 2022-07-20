@@ -2,7 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -16,9 +19,9 @@ namespace LoadComparer
         public MainWindow()
         {
             InitializeComponent();
-            Title = "XLSX Comparer";
             textOutput.Visibility = Visibility.Hidden;
         }
+        public delegate void UpdateProgressBarDelegate(DependencyProperty dp, object value);
         public static string pathInput1;
         public static string pathInput2;
         public static string pathOutput;
@@ -30,236 +33,422 @@ namespace LoadComparer
 
         private void input1_Click(object sender, RoutedEventArgs e)
         {
-            selectUid1.Items.Clear();
-            selectLoad1.Items.Clear();
-            OpenFileDialog openDialog = new OpenFileDialog();
-            openDialog.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm;*.csv|All files|*.*";
-            if (openDialog.ShowDialog() == true)
+            try
             {
-                pathInput1 = openDialog.FileName;
-                nameFile1 = openDialog.SafeFileName;
-            }
-            if (pathInput1 != null)
-            {
-                if (pathInput1.Substring(pathInput1.Count() - 5).Contains(".csv"))
-                    book = excel.Workbooks.OpenXML(pathInput1);
-                else
-                    book = excel.Workbooks.Open(pathInput1);
-                sheet = book.ActiveSheet;
-                List<string> head = new List<string>();
-                for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
+                selectUid1.Items.Clear();
+                selectLoad1.Items.Clear();
+                OpenFileDialog openDialog = new OpenFileDialog();
+                openDialog.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm;*.csv|All files|*.*";
+                if (openDialog.ShowDialog() == true)
                 {
-                    selectUid1.Items.Add(sheet.Cells[1, i].Value);
-                    selectLoad1.Items.Add(sheet.Cells[1, i].Value);
-                    if (sheet.Cells[1, i].Value.Contains("Uid"))
-                        selectUid1.SelectedIndex = i - 1;
-                    if (sheet.Cells[1, i].Value.Contains("Переток"))
-                        selectLoad1.SelectedIndex = i - 1;
+                    pathInput1 = openDialog.FileName;
+                    nameFile1 = openDialog.SafeFileName;
                 }
+                if (pathInput1 != null)
+                {
+                    if (pathInput1.Substring(pathInput1.Count() - 5).Contains(".csv"))
+                        book = excel.Workbooks.OpenXML(pathInput1);
+                    else
+                        book = excel.Workbooks.Open(pathInput1);
+                    sheet = book.ActiveSheet;
+                    List<string> head = new List<string>();
+                    for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
+                    {
+                        selectUid1.Items.Add(sheet.Cells[1, i].Value);
+                        selectLoad1.Items.Add(sheet.Cells[1, i].Value);
+                        selectColumn1.Children.Add(new CheckBox { Content = sheet.Cells[1, i].Value, LayoutTransform = new ScaleTransform(1.5, 1.5), FontFamily = new FontFamily("Calibri") });
+                        // Автоматическая установка флажка Uid (если есть)
+                        foreach (var cb in selectColumn1.Children)
+                            if (cb is CheckBox)
+                                if (((CheckBox)cb).Content.ToString().Contains("Uid"))
+                                    ((CheckBox)cb).IsChecked = true;
+                        // Автоматический выбор Uid и Переток (если есть)
+                        if (sheet.Cells[1, i].Value.ToString().Contains("Uid"))
+                            selectUid1.SelectedIndex = i - 1;
+                        if (sheet.Cells[1, i].Value.ToString().Contains("Переток"))
+                            selectLoad1.SelectedIndex = i - 1;
+                    }
+                    excel.Quit();
+                }
+            }
+            catch
+            {
+                excel.Quit();
+                selectUid1.Items.Clear();
+                selectLoad1.Items.Clear();
+                selectColumn1.Children.Clear();
+                MessageBox.Show("Входной файл имел неверный формат или недопустымые названиия столбцов");
+            }
+            finally
+            {
                 excel.Quit();
             }
-            textOutput.Visibility = Visibility.Hidden;
         }
 
         private void input2_Click(object sender, RoutedEventArgs e)
         {
-            selectUid2.Items.Clear();
-            selectLoad2.Items.Clear();
-            OpenFileDialog openDialog = new OpenFileDialog();
-            openDialog.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm;*.csv|All files|*.*";
-            if (openDialog.ShowDialog() == true)
+            try
             {
-                pathInput2 = openDialog.FileName;
-                nameFile2 = openDialog.SafeFileName;
-            }
-            if (pathInput2 != null)
-            {
-                if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
-                    book = excel.Workbooks.OpenXML(pathInput2);
-                else
-                    book = excel.Workbooks.Open(pathInput2);
-                sheet = book.ActiveSheet;
-                List<string> head = new List<string>();
-                for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
+                selectUid2.Items.Clear();
+                selectLoad2.Items.Clear();
+                OpenFileDialog openDialog = new OpenFileDialog();
+                openDialog.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm;*.csv|All files|*.*";
+                if (openDialog.ShowDialog() == true)
                 {
-                    selectUid2.Items.Add(sheet.Cells[1, i].Value);
-                    selectLoad2.Items.Add(sheet.Cells[1, i].Value);
-                    if (sheet.Cells[1, i].Value.Contains("Uid"))
-                        selectUid2.SelectedIndex = i - 1;
-                    if (sheet.Cells[1, i].Value.Contains("Переток"))
-                        selectLoad2.SelectedIndex = i - 1;
+                    pathInput2 = openDialog.FileName;
+                    nameFile2 = openDialog.SafeFileName;
                 }
+                if (pathInput2 != null)
+                {
+                    if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
+                        book = excel.Workbooks.OpenXML(pathInput2);
+                    else
+                        book = excel.Workbooks.Open(pathInput2);
+                    sheet = book.ActiveSheet;
+                    List<string> head = new List<string>();
+                    for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
+                    {
+                        selectUid2.Items.Add(sheet.Cells[1, i].Value);
+                        selectLoad2.Items.Add(sheet.Cells[1, i].Value);
+                        selectColumn2.Children.Add(new CheckBox { Content = sheet.Cells[1, i].Value, LayoutTransform = new ScaleTransform(1.5, 1.5), FontFamily = new FontFamily("Calibri") });
+                        // Автоматическая установка флажка Uid (если есть)
+                        foreach (var cb in selectColumn2.Children)
+                            if (cb is CheckBox)
+                                if (((CheckBox)cb).Content.ToString().Contains("Uid"))
+                                    ((CheckBox)cb).IsChecked = true;
+                        // Автоматический выбор Uid и Переток (если есть)
+                        if (sheet.Cells[1, i].Value.Contains("Uid"))
+                            selectUid2.SelectedIndex = i - 1;
+                        if (sheet.Cells[1, i].Value.Contains("Переток"))
+                            selectLoad2.SelectedIndex = i - 1;
+                    }
+                    excel.Quit();
+                }
+            }
+            catch
+            {
+                excel.Quit();
+                selectUid2.Items.Clear();
+                selectLoad2.Items.Clear();
+                selectColumn2.Children.Clear();
+                MessageBox.Show("Входной файл имел неверный формат или недопустымые названиия столбцов");
+            }
+            finally
+            {
                 excel.Quit();
             }
-            textOutput.Visibility = Visibility.Hidden;
         }
 
         private void compare_Click(object sender, RoutedEventArgs e)
         {
-            excel.Quit();
-            List<Row> rows1 = new List<Row>();
-            List<Row> rows2 = new List<Row>();
-
-            if (pathInput1.Substring(pathInput1.Count() - 5).Contains(".csv"))
-                book = excel.Workbooks.OpenXML(pathInput1);
-            else
-                book = excel.Workbooks.Open(pathInput1);
-            sheet = book.ActiveSheet;
-
-            Excel.Range selectColumn;
-            Array array;
-            List<string> uid = new List<string>();
-            List<string> load = new List<string>();
-            List<string> name = new List<string>();
-            int numberOfUid = selectUid1.SelectedIndex + 1;
-            int numberOfLoad = selectLoad1.SelectedIndex + 1;
-            int numberOfName = selectLoad1.SelectedIndex;
-
-            selectColumn = sheet.UsedRange.Columns[numberOfUid];
-            array = (Array)selectColumn.Cells.Value2;
-            uid = array.OfType<object>().Select(o => o.ToString()).ToList();
-            selectColumn = sheet.UsedRange.Columns[numberOfLoad];
-            array = (Array)selectColumn.Cells.Value2;
-            load = array.OfType<object>().Select(o => o.ToString()).ToList();
-            selectColumn = sheet.UsedRange.Columns[numberOfName];
-            array = (Array)selectColumn.Cells.Value2;
-            name = array.OfType<object>().Select(o => o.ToString()).ToList();
-            excel.Quit();
-
-            for (int i = 1; i < uid.Count; i++)
-                rows1.Add(new Row(name[i], uid[i], load[i]));
-
-
-            if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
-                book = excel.Workbooks.OpenXML(pathInput2);
-            else
-                book = excel.Workbooks.Open(pathInput2);
-
-            sheet = book.ActiveSheet;
-
-            numberOfUid = selectUid2.SelectedIndex + 1;
-            numberOfLoad = selectLoad2.SelectedIndex + 1;
-            numberOfName = selectLoad2.SelectedIndex;
-
-            selectColumn = sheet.UsedRange.Columns[numberOfUid];
-            array = (Array)selectColumn.Cells.Value2;
-            uid = array.OfType<object>().Select(o => o.ToString()).ToList();
-            selectColumn = sheet.UsedRange.Columns[numberOfLoad];
-            array = (Array)selectColumn.Cells.Value2;
-            load = array.OfType<object>().Select(o => o.ToString()).ToList();
-            selectColumn = sheet.UsedRange.Columns[numberOfName];
-            array = (Array)selectColumn.Cells.Value2;
-            name = array.OfType<object>().Select(o => o.ToString()).ToList();
-            excel.Quit();
-
-            for (int i = 1; i < uid.Count; i++)
-                rows2.Add(new Row(name[i], uid[i], load[i]));
-
-            List<Row> exceptUid1 = rows1.Where(x => !rows2.Any(y => y.Uid.Equals(x.Uid))).ToList();
-            List<Row> exceptUid2 = rows2.Where(x => !rows1.Any(y => y.Uid.Equals(x.Uid))).ToList();
-            List<Row> notEqualLoad = new List<Row>();
-            List<Row> intersectUid = rows1.Where(x => rows2.Any(y => y.Uid.Equals(x.Uid))).ToList();
-
-            foreach (var r in intersectUid)
+            int errors = 0;
+            try
             {
-                var res1 = rows1.FirstOrDefault(x => x.Uid == r.Uid);
-                var res2 = rows2.FirstOrDefault(x => x.Uid == r.Uid);
-                if (rows1[rows1.IndexOf(res1)].Value != rows2[rows2.IndexOf(res2)].Value)
-                    notEqualLoad.Add(r);
-            }
+                if (pathInput1 == null)
+                {
+                    errors++;
+                    MessageBox.Show("Первый файл не загружен!");
+                }
+                else if (pathInput2 == null)
+                {
+                    errors++;
+                    MessageBox.Show("Второй файл не загружен!");
+                }
+                else if (selectLoad1.SelectedItem == null)
+                {
+                    errors++;
+                    MessageBox.Show("Не выбрано сравниваемое значение для файла 1!");
+                }
+                else if (selectLoad2.SelectedItem == null)
+                {
+                    errors++;
+                    MessageBox.Show("Не выбрано сравниваемое значение для файла 2!");
+                }
+                else if(selectColumn1.Children.Count == 0)
+                {
+                    errors++;
+                    MessageBox.Show("Количество выводимых колонок для файла 1 должно быть больше 0!");
+                }
+                else if (selectColumn2.Children.Count == 0)
+                {
+                    errors++;
+                    MessageBox.Show("Количество выводимых колонок для файла 2 должно быть больше 0!");
+                }
+                if(errors == 0)
+                {
+                    UpdateProgressBarDelegate updProgress = new UpdateProgressBarDelegate(progressBar.SetValue);
+                    double pbValue = 0;
+                    progressBar.Maximum = 7;
+                    progressBar.Value = pbValue;
+                    List<string> outColumn1 = new List<string>();
+                    List<string> outColumn2 = new List<string>();
 
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.FileName = $"Сравнение {nameFile1} и {nameFile2}.xlsx";
-            saveFileDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
-            if (saveFileDialog.ShowDialog() == true)
+                    // Получение данных с формы для использования в новом потоке
+                    List<string> selectUidItems1 = new List<string>();
+                    List<string> selectUidItems2 = new List<string>();
+                    List<string> selectUidSelectedItems1 = new List<string>();
+                    List<string> selectUidSelectedItems2 = new List<string>();
+                    List<string> selectLoadItems1 = new List<string>();
+                    List<string> selectLoadItems2 = new List<string>();
+                    int selectedLoad1Index = selectLoad1.Items.IndexOf(selectLoad1.SelectedItem);
+                    int selectedLoad2Index = selectLoad2.Items.IndexOf(selectLoad2.SelectedItem);
+                    List<string> selectLoadSelectedItems1 = new List<string>();
+                    List<string> selectLoadSelectedItems2 = new List<string>();
+                    List<CheckBoxModel> selectColumnItems1 = new List<CheckBoxModel>();
+                    List<CheckBoxModel> selectColumnItems2 = new List<CheckBoxModel>();
+
+                    foreach (var cb in selectColumn1.Children)
+                        selectColumnItems1.Add(new CheckBoxModel(cb as CheckBox));
+                    foreach (var cb in selectColumn2.Children)
+                        selectColumnItems2.Add(new CheckBoxModel(cb as CheckBox));
+                    foreach (var item in selectUid1.Items)
+                        selectUidItems1.Add(item.ToString());
+                    foreach (var item in selectUid2.Items)
+                        selectUidItems2.Add(item.ToString());
+                    foreach (var item in selectUid1.SelectedItems)
+                        selectUidSelectedItems1.Add(item.ToString());
+                    foreach (var item in selectUid2.SelectedItems)
+                        selectUidSelectedItems2.Add(item.ToString());
+                    foreach (var item in selectLoad1.Items)
+                        selectLoadItems1.Add(item.ToString());
+                    foreach (var item in selectLoad2.Items)
+                        selectLoadItems2.Add(item.ToString());
+                    foreach (var item in selectLoad1.SelectedItems)
+                        selectLoadSelectedItems1.Add(item.ToString());
+                    foreach (var item in selectLoad2.SelectedItems)
+                        selectLoadSelectedItems2.Add(item.ToString());
+
+                    Task.Run(() =>
+                    {
+
+
+                        foreach (var cb in selectColumnItems1)
+                            if (cb.IsChecked == true)
+                                outColumn1.Add(cb.Content.ToString());
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+                        foreach (var cb in selectColumnItems2)
+                            if (cb.IsChecked == true)
+                                outColumn2.Add(cb.Content.ToString());
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+                        if (pathInput1.Substring(pathInput1.Count() - 5).Contains(".csv"))
+                            book = excel.Workbooks.OpenXML(pathInput1);
+                        else
+                            book = excel.Workbooks.Open(pathInput1);
+                        sheet = book.ActiveSheet;
+
+                        //Импорт данных файла 1
+                        string[,] dataFile1 = new string[selectUidItems1.Count, sheet.Rows.CurrentRegion.EntireRow.Count];
+                        for (int i = 0; i < selectUidItems1.Count; i++)
+                        {
+                            var column = sheet.UsedRange.Columns[i + 1];
+                            var array = (Array)column.Cells.Value2;
+                            for (int j = 0; j < dataFile1.GetLength(1); j++)
+                            {
+                                dataFile1[i, j] = array.OfType<object>().Select(o => o.ToString()).ToList()[j];
+                            }
+                        }
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+                        // Создание ключа сравнения для файла 1
+                        string[] key1 = new string[sheet.Rows.CurrentRegion.EntireRow.Count];
+                        for (int i = 0; i < dataFile1.GetLength(1); i++)
+                            foreach (var item in selectUidSelectedItems1)
+                                key1[i] += dataFile1[selectUidItems1.IndexOf(item), i];
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+                        if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
+                            book = excel.Workbooks.OpenXML(pathInput2);
+                        else
+                            book = excel.Workbooks.Open(pathInput2);
+                        sheet = book.ActiveSheet;
+
+                        //Импорт данных файла 2
+                        string[,] dataFile2 = new string[selectUidItems2.Count, sheet.Rows.CurrentRegion.EntireRow.Count];
+                        for (int i = 0; i < selectUidItems2.Count; i++)
+                        {
+                            var column = sheet.UsedRange.Columns[i + 1];
+                            var array = (Array)column.Cells.Value2;
+                            for (int j = 0; j < dataFile2.GetLength(1); j++)
+                            {
+                                dataFile2[i, j] = array.OfType<object>().Select(o => o.ToString()).ToList()[j];
+                            }
+                        }
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+                        // Создание ключа сравнения для файла 2
+                        string[] key2 = new string[sheet.Rows.CurrentRegion.EntireRow.Count];
+                        for (int i = 0; i < dataFile2.GetLength(1); i++)
+                            foreach (var item in selectUidSelectedItems2)
+                                key2[i] += dataFile2[selectUidItems2.IndexOf(item), i];
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+                        var exceptKey1 = key1.Where(x => !key2.Any(y => y.Equals(x))).ToList();
+                        var exceptKey2 = key2.Where(x => !key1.Any(y => y.Equals(x))).ToList();
+                        var intersectKey = key1.Where(x => key2.Any(y => y.Equals(x))).ToList();
+
+                        // Поиск различных по параметру
+                        List<string> notEqualParametrKey = new List<string>();
+                        foreach (var key in intersectKey)
+                        {
+                            var res1 = key1.FirstOrDefault(x => x == key);
+                            var res2 = key2.FirstOrDefault(x => x == key);
+                            var parametr1 = dataFile1[selectedLoad1Index, Array.IndexOf(key1, key)];
+                            var parametr2 = dataFile2[selectedLoad2Index, Array.IndexOf(key2, key)];
+                            if (parametr1 != parametr2)
+                                notEqualParametrKey.Add(key);
+                        }
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+                        pbValue = 0;
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, pbValue });
+                        SaveFileDialog saveFileDialog = new SaveFileDialog();
+                        saveFileDialog.FileName = $"Сравнение {nameFile1} и {nameFile2}.xlsx";
+                        saveFileDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
+                        if (saveFileDialog.ShowDialog() == true)
+                        {
+                            Dispatcher.BeginInvoke(new Action(delegate () { progressBar.Maximum = 13; }));
+
+                            pathOutput = saveFileDialog.FileName;
+                            book = excel.Workbooks.Add(Type.Missing);
+                            sheet = book.ActiveSheet;
+
+                            // Определение столбцов 1 файла
+                            sheet.Cells[1, 1].Value = "Нет во втором файле";
+                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[1, outColumn1.Count]].Merge();
+                            foreach (var column in outColumn1)
+                                sheet.Cells[2, outColumn1.IndexOf(column) + 1].Value = dataFile1[selectUidItems1.IndexOf(column), 0];
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            // Определение столбцов 2 файла
+                            sheet.Cells[1, outColumn1.Count + 1].Value = "Нет в первом файле";
+                            sheet.Range[sheet.Cells[1, outColumn1.Count + 1], sheet.Cells[1, outColumn1.Count + outColumn2.Count]].Merge();
+                            foreach (var column in outColumn2)
+                                sheet.Cells[2, outColumn2.IndexOf(column) + 1 + outColumn1.Count].Value = dataFile2[selectUidItems2.IndexOf(column), 0];
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            // Определение столбцов различия
+                            sheet.Cells[1, outColumn1.Count + outColumn2.Count + 1].Value = "Различный параметр";
+                            sheet.Range[sheet.Cells[1, outColumn1.Count + outColumn2.Count + 1], sheet.Cells[1, 2 * outColumn1.Count - selectUidSelectedItems1.Count + 2 * outColumn2.Count]].Merge();
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            // Столбцы ключа для различия
+                            foreach (var column in selectUidSelectedItems1)
+                                sheet.Cells[2, selectUidSelectedItems1.IndexOf(column) + outColumn1.Count + outColumn2.Count + 1].Value = dataFile1[selectUidItems1.IndexOf(column), 0];
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            List<string> noKey1 = new List<string>();
+                            foreach (var column in outColumn1)
+                                if (!selectUidSelectedItems1.Contains(column))
+                                    noKey1.Add(column);
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            List<string> noKey2 = new List<string>();
+                            foreach (var column in outColumn2)
+                                if (!selectUidSelectedItems2.Contains(column))
+                                    noKey2.Add(column);
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            // Столбцы файлов для различия (без ключа, ключ - общий)
+                            foreach (var column in noKey1)
+                                if (!selectUidSelectedItems1.Contains(column))
+                                    sheet.Cells[2, noKey1.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count + 1].Value = dataFile1[selectUidItems1.IndexOf(column), 0] + "_1";
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            foreach (var column in noKey2)
+                                if (!selectUidSelectedItems2.Contains(column))
+                                    sheet.Cells[2, noKey2.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + noKey1.Count + outColumn2.Count + 1].Value = dataFile2[selectUidItems2.IndexOf(column), 0] + "_2";
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+
+                            // Значения разности 1
+                            for (int i = 0; i < exceptKey1.Count; i++)
+                                foreach (var column in outColumn1)
+                                    if (Double.TryParse(dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, exceptKey1[i])], out double value))
+                                        sheet.Cells[i + 3, outColumn1.IndexOf(column) + 1].Value = value;
+                                    else
+                                        sheet.Cells[i + 3, outColumn1.IndexOf(column) + 1].Value = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, exceptKey1[i])];
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            // Значения разности 2
+                            for (int i = 0; i < exceptKey2.Count; i++)
+                                foreach (var column in outColumn2)
+                                    if (Double.TryParse(dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, exceptKey2[i])], out double value))
+                                        sheet.Cells[i + 3, outColumn2.IndexOf(column) + 1 + outColumn1.Count].Value = value;
+                                    else
+                                        sheet.Cells[i + 3, outColumn2.IndexOf(column) + 1 + outColumn1.Count].Value = dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, exceptKey2[i])];
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            // Значения ключа для различия
+                            for (int i = 0; i < notEqualParametrKey.Count; i++)
+                                foreach (var column in selectUidSelectedItems1)
+                                    if (Double.TryParse(dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])], out double value))
+                                        sheet.Cells[i + 3, selectUidSelectedItems1.IndexOf(column) + outColumn1.Count + outColumn2.Count + 1].Value = value;
+                                    else
+                                        sheet.Cells[i + 3, selectUidSelectedItems1.IndexOf(column) + outColumn1.Count + outColumn2.Count + 1].Value = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])];
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            // Значения файлов для различия (без ключа, ключ - общий)
+                            for (int i = 0; i < notEqualParametrKey.Count; i++)
+                                foreach (var column in noKey1)
+                                    if (!selectUidSelectedItems1.Contains(column))
+                                        if (Double.TryParse(dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])], out double value))
+                                            sheet.Cells[i + 3, noKey1.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count + 1].Value = value;
+                                        else
+                                            sheet.Cells[i + 3, noKey1.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count + 1].Value = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])];
+
+
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            for (int i = 0; i < notEqualParametrKey.Count; i++)
+                                foreach (var column in noKey2)
+                                    if (!selectUidSelectedItems1.Contains(column))
+                                        if (Double.TryParse(dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, notEqualParametrKey[i])], out double value))
+                                            sheet.Cells[i + 3, noKey2.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + noKey1.Count + outColumn2.Count + 1].Value = value;
+                                        else
+                                            sheet.Cells[i + 3, noKey2.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + noKey1.Count + outColumn2.Count + 1].Value = dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, notEqualParametrKey[i])];
+                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+
+
+                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, 2 * outColumn1.Count - selectUidSelectedItems1.Count + 2 * outColumn2.Count]].HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter; ;
+                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, 2 * outColumn1.Count - selectUidSelectedItems1.Count + 2 * outColumn2.Count]].Interior.Color = Excel.XlRgbColor.rgbLightSkyBlue;
+                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, 2 * outColumn1.Count - selectUidSelectedItems1.Count + 2 * outColumn2.Count]].Cells.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+
+                            sheet.Columns.AutoFit();
+                            try
+                            {
+                                excel.Application.ActiveWorkbook.SaveAs(pathOutput);
+                            }
+                            catch
+                            {
+                                MessageBox.Show("Нет доступа для записи в файл.");
+                            }
+                        }
+
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+
+                        Marshal.ReleaseComObject(sheet);
+                        book.Close();
+                        Marshal.ReleaseComObject(book);
+                        excel.Quit();
+                        Marshal.ReleaseComObject(excel);
+                        pbValue = 0;
+                        Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, pbValue });
+                    });
+                    textOutput.Visibility = Visibility.Visible;
+                }
+            }
+            finally
             {
-                pathOutput = saveFileDialog.FileName;
-                book = excel.Workbooks.Add(Type.Missing);
-                sheet = book.ActiveSheet;
-                var range = sheet.get_Range("A1", "J2");
-                range.HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter;
-                range.Interior.Color = Excel.XlRgbColor.rgbLightSkyBlue;
-                range.Cells.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-                sheet.get_Range("A1", "C1").Merge();
-                sheet.get_Range("D1", "F1").Merge();
-                sheet.get_Range("G1", "J1").Merge();
-                sheet.Cells[1, 1].Value = "Нет во втором файле";
-                sheet.Cells[2, 1].Value = "Uid";
-                sheet.Cells[2, 2].Value = "Name";
-                sheet.Cells[2, 3].Value = "Value";
-                for (int i = 0; i < exceptUid1.Count; i++)
-                {
-                    sheet.Cells[i + 3, 1].Value = exceptUid1[i].Uid;
-                    sheet.Cells[i + 3, 2].Value = exceptUid1[i].Name;
-                    if (Double.TryParse(exceptUid1[i].Value, out double value))
-                        sheet.Cells[i + 3, 3].Value = value;
-                    else
-                        sheet.Cells[i + 3, 3].Value = exceptUid1[i].Value;
-                }
-                sheet.Cells[1, 4].Value = "Нет в первом файле";
-                sheet.Cells[2, 4].Value = "Uid";
-                sheet.Cells[2, 5].Value = "Name";
-                sheet.Cells[2, 6].Value = "Value";
-                for (int i = 0; i < exceptUid2.Count; i++)
-                {
-                    sheet.Cells[i + 3, 4].Value = exceptUid2[i].Uid;
-                    sheet.Cells[i + 3, 5].Value = exceptUid2[i].Name;
-                    if (Double.TryParse(exceptUid2[i].Value, out double value1))
-                        sheet.Cells[i + 3, 6].Value = value1;
-                    else
-                        sheet.Cells[i + 3, 6].Value = exceptUid2[i].Value;
-                }
-                
-                
-                sheet.Cells[1, 7].Value = "Не совпадают значения";
-                sheet.Cells[2, 7].Value = "Uid";
-                sheet.Cells[2, 8].Value = "Name";
-                sheet.Cells[2, 9].Value = "Value1";
-                sheet.Cells[2, 10].Value = "Value2";
-                for (int i = 0; i < notEqualLoad.Count; i++)
-                {
-                    sheet.Cells[i + 3, 7].Value = notEqualLoad[i].Uid;
-                    sheet.Cells[i + 3, 8].Value = notEqualLoad[i].Name;
-                    if (Double.TryParse(rows1.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value, out double value2))
-                        sheet.Cells[i + 3, 9].Value = value2;
-                    else
-                        sheet.Cells[i + 3, 9].Value = rows1.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value;
-                    if (Double.TryParse(rows2.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value, out double value3))
-                        sheet.Cells[i + 3, 10].Value = value3;
-                    else
-                        sheet.Cells[i + 3, 10].Value = rows2.FirstOrDefault(x => x.Uid == notEqualLoad[i].Uid).Value;
-
-
-                }
-                sheet.Columns.AutoFit();
-                try
-                {
-                    excel.Application.ActiveWorkbook.SaveAs(pathOutput);
-                }
-                catch
-                {
-                    MessageBox.Show("Нет доступа для записи в файл.");
-                }
-                textOutput.Visibility = Visibility.Visible;
+                excel.Quit();
             }
-            excel.Quit();
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            excel.Quit();
+
         }
-        public class Row
+        public class CheckBoxModel
         {
-            public Row(string name, string uid, string value)
+            public CheckBoxModel(CheckBox checkbox)
             {
-                Name = name;
-                Uid = uid;
-                Value = value;
+                IsChecked = checkbox.IsChecked;
+                Content = checkbox.Content;
             }
-            public string Name { get; set; }
-            public string Value { get; set; }
-            public string Uid { get; set; }
+            public bool? IsChecked { get; set; }
+            public object Content { get; set; }
+
         }
     }
 }
