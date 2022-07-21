@@ -72,12 +72,14 @@ namespace LoadComparer
                         if (sheet.Cells[1, i].Value.ToString().Contains("Переток"))
                             selectLoad1.SelectedIndex = i - 1;
                     }
-                    excel.Quit();
+                    if (excel != null)
+                        excel.Quit();
                 }
             }
             catch
             {
-                excel.Quit();
+                if (excel != null)
+                    excel.Quit();
                 selectUid1.Items.Clear();
                 selectLoad1.Items.Clear();
                 selectColumn1.Children.Clear();
@@ -85,7 +87,8 @@ namespace LoadComparer
             }
             finally
             {
-                excel.Quit();
+                if (excel != null)
+                    excel.Quit();
             }
         }
 
@@ -128,12 +131,14 @@ namespace LoadComparer
                         if (sheet.Cells[1, i].Value.Contains("Переток"))
                             selectLoad2.SelectedIndex = i - 1;
                     }
-                    excel.Quit();
+                    if (excel != null)
+                        excel.Quit();
                 }
             }
             catch
             {
-                excel.Quit();
+                if (excel != null)
+                    excel.Quit();
                 selectUid2.Items.Clear();
                 selectLoad2.Items.Clear();
                 selectColumn2.Children.Clear();
@@ -141,7 +146,8 @@ namespace LoadComparer
             }
             finally
             {
-                excel.Quit();
+                if (excel != null)
+                    excel.Quit();
             }
         }
 
@@ -170,7 +176,7 @@ namespace LoadComparer
                     errors++;
                     MessageBox.Show("Не выбрано сравниваемое значение для файла 2!");
                 }
-                else if(selectColumn1.Children.Count == 0)
+                else if (selectColumn1.Children.Count == 0)
                 {
                     errors++;
                     MessageBox.Show("Количество выводимых колонок для файла 1 должно быть больше 0!");
@@ -180,7 +186,7 @@ namespace LoadComparer
                     errors++;
                     MessageBox.Show("Количество выводимых колонок для файла 2 должно быть больше 0!");
                 }
-                if(errors == 0)
+                if (errors == 0)
                 {
                     UpdateProgressBarDelegate updProgress = new UpdateProgressBarDelegate(progressBar.SetValue);
                     double pbValue = 0;
@@ -253,10 +259,11 @@ namespace LoadComparer
                             for (int j = 0; j < dataFile1.GetLength(1); j++)
                             {
                                 Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
-                                if (array.GetValue(j + 1, 1).ToString() != "")
-                                    dataFile1[i, j] = array.OfType<object>().Select(o => o.ToString()).ToList()[j];
-                                else
-                                    dataFile1[i, j] = "";
+                                if (array.GetValue(j + 1, 1) != null)
+                                    if (array.GetValue(j + 1, 1).ToString() != "")
+                                        dataFile1[i, j] = array.GetValue(j + 1, 1).ToString();
+                                    else
+                                        dataFile1[i, j] = "";
                             }
                         }
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
@@ -283,10 +290,11 @@ namespace LoadComparer
                             for (int j = 0; j < dataFile2.GetLength(1); j++)
                             {
                                 Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
-                                if (array.GetValue(j + 1, 1).ToString() != "")
-                                    dataFile2[i, j] = array.OfType<object>().Select(o => o.ToString()).ToList()[j];
-                                else
-                                    dataFile2[i, j] = "";
+                                if (array.GetValue(j + 1, 1) != null)
+                                    if (array.GetValue(j + 1, 1).ToString() != "")
+                                        dataFile2[i, j] = array.GetValue(j + 1, 1).ToString();
+                                    else
+                                        dataFile2[i, j] = "";
                             }
                         }
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
@@ -322,7 +330,10 @@ namespace LoadComparer
                         saveFileDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
                         if (saveFileDialog.ShowDialog() == true)
                         {
-                            Dispatcher.BeginInvoke(new Action(delegate () { progressBar.Maximum = 13; }));
+                            Dispatcher.BeginInvoke(new Action(delegate ()
+                            {
+                                progressBar.Maximum = 13 + exceptKey1.Count + exceptKey2.Count + 3 * notEqualParametrKey.Count;
+                            }));
 
                             pathOutput = saveFileDialog.FileName;
                             book = excel.Workbooks.Add(Type.Missing);
@@ -342,7 +353,6 @@ namespace LoadComparer
                             Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
                             // Определение столбцов различия
                             sheet.Cells[1, outColumn1.Count + outColumn2.Count + 1].Value = "Различный параметр";
-                            sheet.Range[sheet.Cells[1, outColumn1.Count + outColumn2.Count + 1], sheet.Cells[1, 2 * outColumn1.Count - selectUidSelectedItems1.Count + 2 * outColumn2.Count]].Merge();
                             Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
                             // Столбцы ключа для различия
                             foreach (var column in selectUidSelectedItems1)
@@ -369,54 +379,62 @@ namespace LoadComparer
                             Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
 
 
-                            // Значения разности 1
+                            //// Значения разности 1
+                            string[,] result = new string[exceptKey1.Count, outColumn1.Count];
                             for (int i = 0; i < exceptKey1.Count; i++)
+                            {
+                                Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
                                 foreach (var column in outColumn1)
-                                    if (Double.TryParse(dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, exceptKey1[i])], out double value))
-                                        sheet.Cells[i + 3, outColumn1.IndexOf(column) + 1].Value = value;
-                                    else
-                                        sheet.Cells[i + 3, outColumn1.IndexOf(column) + 1].Value = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, exceptKey1[i])];
-                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                                    result[i, outColumn1.IndexOf(column)] = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, exceptKey1[i])];
+                            }
+                            sheet.Range[sheet.Cells[3, 1], sheet.Cells[exceptKey1.Count + 2, outColumn1.Count]] = result;
+
                             // Значения разности 2
+                            result = new string[exceptKey2.Count, outColumn2.Count];
                             for (int i = 0; i < exceptKey2.Count; i++)
+                            {
+                                Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
                                 foreach (var column in outColumn2)
-                                    if (Double.TryParse(dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, exceptKey2[i])], out double value))
-                                        sheet.Cells[i + 3, outColumn2.IndexOf(column) + 1 + outColumn1.Count].Value = value;
-                                    else
-                                        sheet.Cells[i + 3, outColumn2.IndexOf(column) + 1 + outColumn1.Count].Value = dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, exceptKey2[i])];
-                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                                    result[i, outColumn2.IndexOf(column)] = dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, exceptKey2[i])];
+                            }
+                            sheet.Range[sheet.Cells[3, 1 + outColumn1.Count], sheet.Cells[exceptKey2.Count + 2, outColumn2.Count + outColumn1.Count]] = result;
+
                             // Значения ключа для различия
+                            result = new string[notEqualParametrKey.Count, selectUidSelectedItems1.Count];
                             for (int i = 0; i < notEqualParametrKey.Count; i++)
+                            {
+                                Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
                                 foreach (var column in selectUidSelectedItems1)
-                                    if (Double.TryParse(dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])], out double value))
-                                        sheet.Cells[i + 3, selectUidSelectedItems1.IndexOf(column) + outColumn1.Count + outColumn2.Count + 1].Value = value;
-                                    else
-                                        sheet.Cells[i + 3, selectUidSelectedItems1.IndexOf(column) + outColumn1.Count + outColumn2.Count + 1].Value = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])];
-                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                                    result[i, selectUidSelectedItems1.IndexOf(column)] = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])];
+                            }
+                            sheet.Range[sheet.Cells[3, 1 + outColumn1.Count + outColumn2.Count], sheet.Cells[notEqualParametrKey.Count + 2, outColumn1.Count + outColumn2.Count + selectUidSelectedItems1.Count]] = result;
+
                             // Значения файлов для различия (без ключа, ключ - общий)
+                            result = new string[notEqualParametrKey.Count, noKey1.Count];
                             for (int i = 0; i < notEqualParametrKey.Count; i++)
+                            {
+                                Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
                                 foreach (var column in noKey1)
                                     if (!selectUidSelectedItems1.Contains(column))
-                                        if (Double.TryParse(dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])], out double value))
-                                            sheet.Cells[i + 3, noKey1.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count + 1].Value = value;
-                                        else
-                                            sheet.Cells[i + 3, noKey1.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count + 1].Value = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])];
+                                        result[i, noKey1.IndexOf(column)] = dataFile1[selectUidItems1.IndexOf(column), Array.IndexOf(key1, notEqualParametrKey[i])];
+                            }
+                            sheet.Range[sheet.Cells[3, 1 + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count], sheet.Cells[notEqualParametrKey.Count + 2, noKey1.Count + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count]] = result;
 
 
-                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                            result = new string[notEqualParametrKey.Count, noKey2.Count];
                             for (int i = 0; i < notEqualParametrKey.Count; i++)
+                            {
+                                Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
                                 foreach (var column in noKey2)
                                     if (!selectUidSelectedItems1.Contains(column))
-                                        if (Double.TryParse(dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, notEqualParametrKey[i])], out double value))
-                                            sheet.Cells[i + 3, noKey2.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + noKey1.Count + outColumn2.Count + 1].Value = value;
-                                        else
-                                            sheet.Cells[i + 3, noKey2.IndexOf(column) + selectUidSelectedItems1.Count + outColumn1.Count + noKey1.Count + outColumn2.Count + 1].Value = dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, notEqualParametrKey[i])];
-                            Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
+                                        result[i, noKey2.IndexOf(column)] = dataFile2[selectUidItems2.IndexOf(column), Array.IndexOf(key2, notEqualParametrKey[i])];
+                            }
+                            sheet.Range[sheet.Cells[3, 1 + noKey1.Count + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count], sheet.Cells[notEqualParametrKey.Count + 2, noKey2.Count + noKey1.Count + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count]] = result;
 
-
-                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, 2 * outColumn1.Count - selectUidSelectedItems1.Count + 2 * outColumn2.Count]].HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter; ;
-                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, 2 * outColumn1.Count - selectUidSelectedItems1.Count + 2 * outColumn2.Count]].Interior.Color = Excel.XlRgbColor.rgbLightSkyBlue;
-                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, 2 * outColumn1.Count - selectUidSelectedItems1.Count + 2 * outColumn2.Count]].Cells.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+                            sheet.Range[sheet.Cells[1, outColumn1.Count + outColumn2.Count + 1], sheet.Cells[1, noKey2.Count + noKey1.Count + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count]].Merge();
+                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, noKey2.Count + noKey1.Count + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count]].HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter; ;
+                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, noKey2.Count + noKey1.Count + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count]].Interior.Color = Excel.XlRgbColor.rgbLightSkyBlue;
+                            sheet.Range[sheet.Cells[1, 1], sheet.Cells[2, noKey2.Count + noKey1.Count + selectUidSelectedItems1.Count + outColumn1.Count + outColumn2.Count]].Cells.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
 
                             sheet.Columns.AutoFit();
                             try
@@ -435,12 +453,13 @@ namespace LoadComparer
                         Marshal.ReleaseComObject(sheet);
                         book.Close();
                         Marshal.ReleaseComObject(book);
-                        excel.Quit();
+                        if (excel != null)
+                            excel.Quit();
                         Marshal.ReleaseComObject(excel);
                         pbValue = 0;
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, pbValue });
-                    }).ContinueWith(delegate { textOutput.Visibility = Visibility.Visible; });
-                    
+                    }).ContinueWith(UpdateResult, TaskScheduler.FromCurrentSynchronizationContext());
+
                 }
             }
             catch
@@ -449,10 +468,14 @@ namespace LoadComparer
             }
             finally
             {
-                excel.Quit();
+                if (excel != null)
+                    excel.Quit();
             }
         }
-
+        private void UpdateResult(Task obj)
+        {
+            textOutput.Visibility = Visibility.Visible;
+        }
         private void Window_Closed(object sender, EventArgs e)
         {
 

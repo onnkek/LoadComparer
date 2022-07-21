@@ -5,10 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LoadComparer"
         mc:Ignorable="d"
-        Title="FileComparer" Height="435" Width="1145" Closed="Window_Closed" ResizeMode="NoResize">
+        Title="FileComparer" Height="420" Width="1145" Closed="Window_Closed" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="60"/>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="160"/>
             <RowDefinition Height="160"/>
             <RowDefinition Height="15"/>
@@ -20,15 +20,15 @@
             <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Image Source="Resources/Key.png" Height="50"/>
+            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/Key.png" Height="39"/>
             <TextBlock Text="Выбор ключа" Margin="5,0,0,0" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Calibri"/>
         </StackPanel>
         <StackPanel Grid.Column="2" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Image Source="Resources/Data.png" Height="50"/>
+            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/Data.png" Height="31"/>
             <TextBlock Text="Выбор значения" Margin="10,0,0,0" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Calibri"/>
         </StackPanel>
         <StackPanel Grid.Column="3" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Image Source="Resources/Column.png" Height="50"/>
+            <Image RenderOptions.BitmapScalingMode="HighQuality" Source="Resources/Column.png" Height="30"/>
             <TextBlock Text="Выбор столбцов" Margin="5,0,0,0" Foreground="Black" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Calibri"/>
         </StackPanel>
 
@@ -51,13 +51,13 @@
             </StackPanel>
         </Button>
 
-        <ListBox x:Name="selectUid1" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,0" SelectionMode="Extended" Grid.Column="1" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <ListBox x:Name="selectUid1" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,2" SelectionMode="Extended" Grid.Column="1" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
         <ListBox x:Name="selectUid2" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,0" SelectionMode="Extended" Grid.Column="1" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
-        <ListBox x:Name="selectLoad1" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,0" Grid.Column="2" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
+        <ListBox x:Name="selectLoad1" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,2" Grid.Column="2" Grid.Row="1" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
         <ListBox x:Name="selectLoad2" BorderBrush="LightBlue" FontFamily="Calibri" Margin="0,0,2,0" Grid.Column="2" Grid.Row="2" FontSize="18" d:ItemsSource="{d:SampleData ItemCount=5}"/>
         <TextBlock x:Name="textOutput" Grid.Column="0" Grid.Row="0" FontFamily="Calibri" Text="Сохранение успешно!"  Foreground="Green" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
 
-        <ScrollViewer Grid.Column="3" Grid.Row="1" Margin="0,0,12,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Column="3" Grid.Row="1" Margin="0,0,12,2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
             <Border BorderBrush="LightBlue" BorderThickness="1">
                 <StackPanel x:Name="selectColumn1" Margin="4"/>
             </Border>
