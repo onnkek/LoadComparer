@@ -20,6 +20,11 @@ namespace LoadComparer
         {
             InitializeComponent();
             textOutput.Visibility = Visibility.Hidden;
+            log += IsOfficeInstalled();
+            log += IsDotNetInstalled();
+            logWindow = new Log();
+            logWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            WtiteLog($"[{DateTime.Now}] Инициализация приложения завершена.\r\n");
         }
         public delegate void UpdateProgressBarDelegate(DependencyProperty dp, object value);
         public static string pathInput1;
@@ -32,11 +37,81 @@ namespace LoadComparer
         public static Excel.Worksheet sheet;
         public static int rowCount1;
         public static int rowCount2;
+        public static string log;
+        public static Log logWindow;
 
+        private static void WtiteLog(string text)
+        {
+            log += text;
+            logWindow.UpdateInfo(log);
+        }
+        private static string IsDotNetInstalled()
+        {
+            const string subkey = @"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\";
+
+            using (var ndpKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey(subkey))
+            {
+                if (ndpKey != null && ndpKey.GetValue("Release") != null)
+                {
+                    return $"[{DateTime.Now}] .NET Framework Version: {CheckFor45PlusVersion((int)ndpKey.GetValue("Release"))}\r\n";
+                }
+                else
+                {
+                    return $"[{DateTime.Now}] .NET Framework Version 4.5 or later is not detected.\r\n";
+                }
+            }
+        }
+        // Checking the version using >= enables forward compatibility.
+        static string CheckFor45PlusVersion(int releaseKey)
+        {
+            if (releaseKey >= 533320)
+                return "4.8.1 or later";
+            if (releaseKey >= 528040)
+                return "4.8";
+            if (releaseKey >= 461808)
+                return "4.7.2";
+            if (releaseKey >= 461308)
+                return "4.7.1";
+            if (releaseKey >= 460798)
+                return "4.7";
+            if (releaseKey >= 394802)
+                return "4.6.2";
+            if (releaseKey >= 394254)
+                return "4.6.1";
+            if (releaseKey >= 393295)
+                return "4.6";
+            if (releaseKey >= 379893)
+                return "4.5.2";
+            if (releaseKey >= 378675)
+                return "4.5.1";
+            if (releaseKey >= 378389)
+                return "4.5";
+            // This code should never execute. A non-null release key should mean
+            // that 4.5 or later is installed.
+            return $"No 4.5 or later version detected";
+        }
+        private static string IsOfficeInstalled()
+        {
+            string res;
+            RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Winword.exe");
+            if (key != null)
+            {
+                res = $"[{DateTime.Now}] Найден установленный Excel по пути {key.GetValue("Path")}\r\n";
+                key.Close();
+            }
+            else
+            {
+                res = $"[{DateTime.Now}] Не найден установленный Excel\r\n";
+                MessageBox.Show("Для работы программы необходим пакет MS Office Excel");
+            }
+
+            return res;
+        }
         private void input1_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                WtiteLog($"[{DateTime.Now}] Запрос выбора файла 1\r\n");
                 textOutput.Visibility = Visibility.Hidden;
                 selectUid1.Items.Clear();
                 selectLoad1.Items.Clear();
@@ -49,15 +124,19 @@ namespace LoadComparer
                 }
                 if (pathInput1 != null)
                 {
+                    WtiteLog($"[{DateTime.Now}] Выбран файл {pathInput1}\r\n");
                     if (pathInput1.Substring(pathInput1.Count() - 5).Contains(".csv"))
                         book = excel.Workbooks.OpenXML(pathInput1);
                     else
                         book = excel.Workbooks.Open(pathInput1);
                     sheet = book.ActiveSheet;
                     rowCount1 = sheet.Rows.CurrentRegion.EntireRow.Count;
+                    WtiteLog($"[{DateTime.Now}] Число строк книги: {rowCount1}\r\n");
+                    WtiteLog($"[{DateTime.Now}] Число колонок книги: {sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column}\r\n");
                     List<string> head = new List<string>();
                     for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
                     {
+                        WtiteLog($"[{DateTime.Now}] Добавлена колонка \"{sheet.Cells[1, i].Value}\"\r\n");
                         selectUid1.Items.Add(sheet.Cells[1, i].Value);
                         selectLoad1.Items.Add(sheet.Cells[1, i].Value);
                         selectColumn1.Children.Add(new CheckBox { Content = sheet.Cells[1, i].Value, LayoutTransform = new ScaleTransform(1.5, 1.5), FontFamily = new FontFamily("Calibri") });
@@ -74,16 +153,20 @@ namespace LoadComparer
                     }
                     if (excel != null)
                         excel.Quit();
+                    WtiteLog($"[{DateTime.Now}] Колонки успешно загружены\r\n");
                 }
             }
-            catch
+            catch(Exception exc)
             {
+                WtiteLog($"[{DateTime.Now}][ERROR] {exc.Message}\r\n");
+                WtiteLog($"{exc.StackTrace}\r\n");
                 if (excel != null)
                     excel.Quit();
                 selectUid1.Items.Clear();
                 selectLoad1.Items.Clear();
                 selectColumn1.Children.Clear();
                 MessageBox.Show("Входной файл имел неверный формат или недопустымые названиия столбцов");
+                WtiteLog($"[{DateTime.Now}][ERROR] Входной файл имел неверный формат или недопустымые названиия столбцов\r\n");
             }
             finally
             {
@@ -96,6 +179,7 @@ namespace LoadComparer
         {
             try
             {
+                WtiteLog($"[{DateTime.Now}] Запрос выбора файла 2\r\n");
                 textOutput.Visibility = Visibility.Hidden;
                 selectUid2.Items.Clear();
                 selectLoad2.Items.Clear();
@@ -108,15 +192,19 @@ namespace LoadComparer
                 }
                 if (pathInput2 != null)
                 {
+                    WtiteLog($"[{DateTime.Now}] Выбран файл {pathInput2}\r\n");
                     if (pathInput2.Substring(pathInput2.Count() - 5).Contains(".csv"))
                         book = excel.Workbooks.OpenXML(pathInput2);
                     else
                         book = excel.Workbooks.Open(pathInput2);
                     sheet = book.ActiveSheet;
                     rowCount2 = sheet.Rows.CurrentRegion.EntireRow.Count;
+                    WtiteLog($"[{DateTime.Now}] Число строк книги: {rowCount2}\r\n");
+                    WtiteLog($"[{DateTime.Now}] Число колонок книги: {sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column}\r\n");
                     List<string> head = new List<string>();
                     for (int i = 1; i <= sheet.Cells[1, sheet.Columns.Count].End[Excel.XlDirection.xlToLeft].Column; i++)
                     {
+                        WtiteLog($"[{DateTime.Now}] Добавлена колонка \"{sheet.Cells[1, i].Value}\"\r\n");
                         selectUid2.Items.Add(sheet.Cells[1, i].Value);
                         selectLoad2.Items.Add(sheet.Cells[1, i].Value);
                         selectColumn2.Children.Add(new CheckBox { Content = sheet.Cells[1, i].Value, LayoutTransform = new ScaleTransform(1.5, 1.5), FontFamily = new FontFamily("Calibri") });
@@ -135,24 +223,29 @@ namespace LoadComparer
                         excel.Quit();
                 }
             }
-            catch
+            catch(Exception exc)
             {
+                WtiteLog($"[{DateTime.Now}][ERROR] {exc.Message}\r\n");
+                WtiteLog($"{exc.StackTrace}\r\n");
                 if (excel != null)
                     excel.Quit();
                 selectUid2.Items.Clear();
                 selectLoad2.Items.Clear();
                 selectColumn2.Children.Clear();
                 MessageBox.Show("Входной файл имел неверный формат или недопустымые названиия столбцов");
+                WtiteLog($"[{DateTime.Now}][ERROR] Входной файл имел неверный формат или недопустымые названиия столбцов\r\n");
             }
             finally
             {
                 if (excel != null)
                     excel.Quit();
             }
+            WtiteLog($"[{DateTime.Now}] Колонки успешно загружены\r\n");
         }
 
         private void compare_Click(object sender, RoutedEventArgs e)
         {
+            WtiteLog($"[{DateTime.Now}] Натажата кнопка сравнения\r\n");
             int errors = 0;
             try
             {
@@ -160,34 +253,41 @@ namespace LoadComparer
                 {
                     errors++;
                     MessageBox.Show("Первый файл не загружен!");
+                    WtiteLog($"[{DateTime.Now}][ERROR] Первый файл не загружен!\r\n");
                 }
                 else if (pathInput2 == null)
                 {
                     errors++;
                     MessageBox.Show("Второй файл не загружен!");
+                    WtiteLog($"[{DateTime.Now}][ERROR] Второй файл не загружен!\r\n");
                 }
                 else if (selectLoad1.SelectedItem == null)
                 {
                     errors++;
                     MessageBox.Show("Не выбрано сравниваемое значение для файла 1!");
+                    WtiteLog($"[{DateTime.Now}][ERROR] Не выбрано сравниваемое значение для файла 1!\r\n");
                 }
                 else if (selectLoad2.SelectedItem == null)
                 {
                     errors++;
                     MessageBox.Show("Не выбрано сравниваемое значение для файла 2!");
+                    WtiteLog($"[{DateTime.Now}][ERROR] Не выбрано сравниваемое значение для файла 2!\r\n");
                 }
                 else if (selectColumn1.Children.Count == 0)
                 {
                     errors++;
                     MessageBox.Show("Количество выводимых колонок для файла 1 должно быть больше 0!");
+                    WtiteLog($"[{DateTime.Now}][ERROR] Количество выводимых колонок для файла 1 должно быть больше 0!\r\n");
                 }
                 else if (selectColumn2.Children.Count == 0)
                 {
                     errors++;
                     MessageBox.Show("Количество выводимых колонок для файла 2 должно быть больше 0!");
+                    WtiteLog($"[{DateTime.Now}][ERROR] Количество выводимых колонок для файла 2 должно быть больше 0!\r\n");
                 }
                 if (errors == 0)
                 {
+                    WtiteLog($"[{DateTime.Now}] Ошибки отсутствуют\r\n");
                     UpdateProgressBarDelegate updProgress = new UpdateProgressBarDelegate(progressBar.SetValue);
                     double pbValue = 0;
                     progressBar.Maximum = 7 + selectUid1.Items.Count * rowCount1 + selectUid2.Items.Count * rowCount2;
@@ -232,7 +332,7 @@ namespace LoadComparer
 
                     Task.Run(() =>
                     {
-
+                        log += $"[{DateTime.Now}] Старт сравнения файлов\r\n";
 
                         foreach (var cb in selectColumnItems1)
                             if (cb.IsChecked == true)
@@ -322,14 +422,16 @@ namespace LoadComparer
                                 notEqualParametrKey.Add(key);
                         }
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, ++pbValue });
-
+                        log += $"[{DateTime.Now}] Сравнение файлов завершено успешно\r\n";
                         pbValue = 0;
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, pbValue });
                         SaveFileDialog saveFileDialog = new SaveFileDialog();
                         saveFileDialog.FileName = $"Сравнение {nameFile1} и {nameFile2}.xlsx";
                         saveFileDialog.Filter = "Книга Excel (.xlsx) | *.xlsx|All files| *.*";
+                        log += $"[{DateTime.Now}] Запрос сохранения файла\r\n";
                         if (saveFileDialog.ShowDialog() == true)
                         {
+                            log += $"[{DateTime.Now}] Старт сохранения файла\r\n";
                             Dispatcher.BeginInvoke(new Action(delegate ()
                             {
                                 progressBar.Maximum = 13 + exceptKey1.Count + exceptKey2.Count + 3 * notEqualParametrKey.Count;
@@ -440,9 +542,12 @@ namespace LoadComparer
                             try
                             {
                                 excel.Application.ActiveWorkbook.SaveAs(pathOutput);
+                                log += $"[{DateTime.Now}] Файл успешно сохранен\r\n";
                             }
-                            catch
+                            catch (Exception exc)
                             {
+                                log += $"[{DateTime.Now}][ERROR] {exc.Message}\r\n";
+                                log += $"{exc.StackTrace}\r\n";
                                 MessageBox.Show("Нет доступа для записи в файл.");
                             }
                         }
@@ -458,12 +563,15 @@ namespace LoadComparer
                         Marshal.ReleaseComObject(excel);
                         pbValue = 0;
                         Dispatcher.Invoke(updProgress, new object[] { ProgressBar.ValueProperty, pbValue });
+                        log += $"[{DateTime.Now}] Очищены ресурсы\r\n";
                     }).ContinueWith(UpdateResult, TaskScheduler.FromCurrentSynchronizationContext());
 
                 }
             }
-            catch
+            catch (Exception exc)
             {
+                WtiteLog($"[{DateTime.Now}][ERROR] {exc.Message}\r\n");
+                WtiteLog($"{exc.StackTrace}\r\n");
                 MessageBox.Show("Произошла непредвиденная ошибка");
             }
             finally
@@ -475,6 +583,7 @@ namespace LoadComparer
         private void UpdateResult(Task obj)
         {
             textOutput.Visibility = Visibility.Visible;
+            logWindow.UpdateInfo(log);
         }
         private void Window_Closed(object sender, EventArgs e)
         {
@@ -490,6 +599,27 @@ namespace LoadComparer
             public bool? IsChecked { get; set; }
             public object Content { get; set; }
 
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            About about = new About();
+            about.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            about.Topmost = true;
+            about.Show();
+        }
+
+        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+        {
+            logWindow.UpdateInfo(log);
+            logWindow.Show();
+        }
+
+        private void MenuItem_Click_2(object sender, RoutedEventArgs e)
+        {
+            Help helpWindow = new Help();
+            helpWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            helpWindow.Show();
         }
     }
 }
